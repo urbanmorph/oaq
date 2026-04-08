@@ -135,18 +135,20 @@ main > section > h2 { margin-block: 0 1rem; }
 .provider-pill.p-airnet    { color: #a066ff; }
 .provider-pill.p-aurassure { color: #00b4a0; }
 
-/* Horizontal scroll wrapper so wide leaderboard tables never push layout
-   off-screen on narrow viewports. */
+/* Scroll wrapper only kicks in as a fallback when content genuinely can't
+   fit; tables size themselves normally otherwise (no forced min-width). */
 .table-wrap {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-.table-wrap > table { min-width: max-content; }
 
-table { width: 100%; }
-table td, table th { padding: 0.35rem 0.5rem; white-space: nowrap; }
+table { width: 100%; table-layout: auto; }
+table td, table th { padding: 0.35rem 0.5rem; }
+/* Keep numeric cells and badges on one line; station names can wrap. */
+table td.num, table th.num { white-space: nowrap; }
+table td .band, table td .yll { white-space: nowrap; }
 
 details { margin-block: 0.75rem; }
 details > summary { cursor: pointer; }
