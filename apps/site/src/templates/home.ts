@@ -42,8 +42,9 @@ function table(header: string, body: string): string {
 function cityDetails(g: CityGroup, open: boolean): string {
   const rows = g.stations.map(row).join("\n");
   const avg = g.avgAqi !== null ? `avg AQI ${g.avgAqi}` : "no AQI data";
+  const stationWord = g.stations.length === 1 ? "station" : "stations";
   return `<details id="${esc(g.slug)}"${open ? " open" : ""}>
-<summary><h3>${esc(g.name)} — ${g.stations.length} stations · ${esc(avg)}</h3></summary>
+<summary><h3>${esc(g.name)} — ${g.stations.length} ${stationWord} · ${esc(avg)}</h3></summary>
 ${table(
     `<th>Station</th><th>Provider</th><th>PM2.5</th><th>AQI</th><th>Band</th>`,
     rows,

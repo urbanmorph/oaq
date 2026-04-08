@@ -20,7 +20,7 @@ main { max-width: 72rem; margin: 0 auto; padding: 0 1rem 3rem; }
 nav.site-nav[data-topnav] {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 2rem 1rem 1rem;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
