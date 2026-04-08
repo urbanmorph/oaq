@@ -81,6 +81,23 @@ main > section > h2 { margin-block: 0 1rem; }
 .impact-grid dd { margin: 0.25rem 0 0; font-size: 1.15rem; }
 .impact-grid dd strong { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
 .small { font-size: 0.85rem; }
+
+/* Years-of-life-lost pill — 5 quantile buckets computed over all stations
+   in the snapshot. Greener = less lost (best quintile), redder = more. */
+.yll {
+  display: inline-block;
+  padding: 0.15em 0.55em;
+  border-radius: 0.25em;
+  font-size: 0.85em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.yll-1 { background: #00b050; }            /* cleanest quintile */
+.yll-2 { background: #8bc34a; color: #111; }
+.yll-3 { background: #ffd633; color: #111; }
+.yll-4 { background: #ff8c00; }
+.yll-5 { background: #d62828; }            /* dirtiest quintile */
 .muted { color: var(--muted-foreground, #71717a); }
 
 .num { font-variant-numeric: tabular-nums; text-align: right; }
