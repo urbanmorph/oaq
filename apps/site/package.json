@@ -1,0 +1,18 @@
+{
+  "name": "oaq-site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsx build.ts",
+    "dev": "tsx watch build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@knadh/oat": "^0.5.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

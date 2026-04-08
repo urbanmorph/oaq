@@ -1,0 +1,4 @@
+# Local-only secrets for `wrangler dev`. Never commit this file.
+# Copy to .dev.vars and fill in.
+OAQ_API_KEY=
+CLOUDFLARE_API_TOKEN=

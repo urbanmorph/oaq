@@ -1,0 +1,20 @@
+name = "oaq-worker"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+account_id = "6ba72cdd965276a57d19bf0aadc4d551"
+
+# Hourly refresh at :05, daily hierarchy refresh at 20:30 UTC (02:00 IST).
+[triggers]
+crons = ["5 * * * *", "30 20 * * *"]
+
+[[kv_namespaces]]
+binding = "OAQ_KV"
+id = "2279644a57474d1ebabcc94d09137c5c"
+
+[[r2_buckets]]
+binding = "OAQ_R2"
+bucket_name = "oaq-data"
+
+[vars]
+OAQ_BROKER_URL = "https://us-central1-oaqdms.cloudfunctions.net/brokerData"
+OAQ_BASE_URL = "https://oaq.notf.in/v1"
