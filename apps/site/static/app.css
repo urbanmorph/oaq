@@ -135,20 +135,22 @@ main > section > h2 { margin-block: 0 1rem; }
 .provider-pill.p-airnet    { color: #a066ff; }
 .provider-pill.p-aurassure { color: #00b4a0; }
 
-/* Scroll wrapper only kicks in as a fallback when content genuinely can't
-   fit; tables size themselves normally otherwise (no forced min-width). */
-.table-wrap {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+/* Scroll wrapper is invisible on desktop — only becomes a scroll container
+   below 640px. Overrides Oat's table { min-width: 320px; overflow-x: auto }
+   which was forcing a scrollbar even when content fit. */
+.table-wrap { width: 100%; max-width: 100%; }
 
-table { width: 100%; table-layout: auto; }
+table {
+  width: 100%;
+  min-width: 0;          /* beat Oat's 320px */
+  max-width: 100%;
+  table-layout: auto;
+  overflow-x: visible;   /* beat Oat's overflow-x: auto */
+}
 table td, table th { padding: 0.35rem 0.5rem; }
 /* Keep numeric cells and badges on one line; station names can wrap. */
 table td.num, table th.num { white-space: nowrap; }
-table td .band, table td .yll { white-space: nowrap; }
+table td .band, table td .yll, table td .provider-pill { white-space: nowrap; }
 
 details { margin-block: 0.75rem; }
 details > summary { cursor: pointer; }
@@ -175,6 +177,11 @@ input[type="search"] { width: 100%; max-width: 32rem; }
 details[hidden] { display: none !important; }
 
 @media (max-width: 640px) {
+  /* Below 640px, allow tables to scroll horizontally inside their wrapper
+     as a fallback for very narrow phones. */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-wrap > table { min-width: max-content; }
+
   main { padding: 0 0.75rem 2rem; }
   nav.site-nav[data-topnav] {
     padding: 1.25rem 0.75rem 0.75rem;
