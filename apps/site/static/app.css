@@ -82,8 +82,8 @@ main > section > h2 { margin-block: 0 1rem; }
 .impact-grid dd strong { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
 .small { font-size: 0.85rem; }
 
-/* Years-of-life-lost pill — 5 quantile buckets computed over all stations
-   in the snapshot. Greener = less lost (best quintile), redder = more. */
+/* Years-of-life-lost pill — absolute bands (not quantile) so colors stay
+   comparable across days. Thresholds: 1, 2, 3, 4 yr (WHO→India NAAQS range). */
 .yll {
   display: inline-block;
   padding: 0.15em 0.55em;

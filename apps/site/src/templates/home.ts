@@ -4,32 +4,31 @@ import { esc, fmtNum, formatUpdated, groupByCity } from "../util";
 import { layout } from "./layout";
 import { lifeYearsLost } from "../aqli";
 
-// 5-bucket quantile scale computed once per build over all stations with a
-// valid YLL value. Returns the 4 thresholds (20/40/60/80 percentiles) so
-// every row can be classified in O(log n) or O(1).
-function computeYllThresholds(stations: NormalizedStation[]): number[] {
-  const vals = stations
-    .map((s) => lifeYearsLost(s.pollutants.pm25))
-    .filter((v): v is number => v !== null)
-    .sort((a, b) => a - b);
-  if (vals.length === 0) return [0, 0, 0, 0];
-  const q = (p: number) => vals[Math.min(vals.length - 1, Math.floor(vals.length * p))];
-  return [q(0.2), q(0.4), q(0.6), q(0.8)];
-}
-
-function yllBucket(years: number, thresholds: number[]): 1 | 2 | 3 | 4 | 5 {
-  if (years <= thresholds[0]) return 1;
-  if (years <= thresholds[1]) return 2;
-  if (years <= thresholds[2]) return 3;
-  if (years <= thresholds[3]) return 4;
+// Absolute (not quantile) banding for years of life lost. Thresholds chosen
+// to be stable across days and tied to meaningful real-world reference points:
+//
+//   yll-1  ≤ 1 yr   —  near WHO 5 µg/m³ safe zone (excess PM2.5 ≲ 10)
+//   yll-2  ≤ 2 yr   —  WHO Interim Target 4 range (PM2.5 ≲ 25)
+//   yll-3  ≤ 3 yr   —  approaching India NAAQS annual standard
+//   yll-4  ≤ 4 yr   —  around India NAAQS (40 µg/m³ → 3.43 yr)
+//   yll-5  > 4 yr   —  exceeds India's own standard
+//
+// These correspond to PM2.5 excess of ~10/~20/~30/~40+ µg/m³ above the
+// WHO guideline, roughly aligning with the AQI "good/mod/poor/vpoor/severe"
+// narrative while staying comparable from one snapshot to the next.
+function yllBucket(years: number): 1 | 2 | 3 | 4 | 5 {
+  if (years <= 1) return 1;
+  if (years <= 2) return 2;
+  if (years <= 3) return 3;
+  if (years <= 4) return 4;
   return 5;
 }
 
-function yllCell(s: NormalizedStation, thresholds: number[]): string {
+function yllCell(s: NormalizedStation): string {
   const y = lifeYearsLost(s.pollutants.pm25);
   if (y === null) return `<td class="num"><span class="band unknown">—</span></td>`;
-  const b = yllBucket(y, thresholds);
-  return `<td class="num"><span class="yll yll-${b}">${y.toFixed(1)} yr</span></td>`;
+  const b = yllBucket(y);
+  return `<td class="num"><span class="yll yll-${b}" title="AQLI: ${y.toFixed(2)} years of life expectancy lost vs WHO 5 µg/m³ baseline">${y.toFixed(1)} yr</span></td>`;
 }
 
 function bandLabel(b: NormalizedStation["band"]): string {
@@ -40,7 +39,7 @@ function stationHref(s: NormalizedStation): string {
   return `/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
 }
 
-function rowNumbered(n: number, s: NormalizedStation, thresholds: number[]): string {
+function rowNumbered(n: number, s: NormalizedStation): string {
   return `<tr>
 <td class="num">${n}</td>
 <td><a href="${esc(stationHref(s))}">${esc(s.name)}</a></td>
@@ -48,18 +47,18 @@ function rowNumbered(n: number, s: NormalizedStation, thresholds: number[]): str
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
 <td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
-${yllCell(s, thresholds)}
+${yllCell(s)}
 </tr>`;
 }
 
-function row(s: NormalizedStation, thresholds: number[]): string {
+function row(s: NormalizedStation): string {
   return `<tr>
 <td><a href="${esc(stationHref(s))}">${esc(s.name)}</a></td>
 <td>${esc(s.provider)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
 <td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
-${yllCell(s, thresholds)}
+${yllCell(s)}
 </tr>`;
 }
 
@@ -70,8 +69,8 @@ function table(header: string, body: string): string {
 </table>`;
 }
 
-function cityDetails(g: CityGroup, open: boolean, thresholds: number[]): string {
-  const rows = g.stations.map((s) => row(s, thresholds)).join("\n");
+function cityDetails(g: CityGroup, open: boolean): string {
+  const rows = g.stations.map(row).join("\n");
   const avg = g.avgAqi !== null ? `avg AQI ${g.avgAqi}` : "no AQI data";
   const stationWord = g.stations.length === 1 ? "station" : "stations";
   return `<details id="${esc(g.slug)}"${open ? " open" : ""}>
@@ -89,7 +88,6 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   const worst = withAqi.slice(0, 50); // already sorted worst first
   const best = [...withAqi].sort((a, b) => a.aqi - b.aqi).slice(0, 50);
   const updated = formatUpdated(snap.generated_at);
-  const yllThresholds = computeYllThresholds(snap.stations);
 
   const top5Worst = worst.slice(0, 5);
   const description = `India air quality leaderboard. ${snap.station_count} stations ranked live. Worst right now: ${
@@ -134,7 +132,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   <h2>Worst 50</h2>
   ${table(
     `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
-    worst.map((s, i) => rowNumbered(i + 1, s, yllThresholds)).join("\n"),
+    worst.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
   )}
 </section>
 
@@ -142,7 +140,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   <h2>Best 50</h2>
   ${table(
     `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
-    best.map((s, i) => rowNumbered(i + 1, s, yllThresholds)).join("\n"),
+    best.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
   )}
 </section>
 
@@ -151,7 +149,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   <p>
     <input type="search" id="city-filter" placeholder="search your city…  (try &quot;delhi&quot;, &quot;ghazi&quot;, &quot;bengal&quot;)" autocomplete="off" />
   </p>
-  ${groups.map((g, i) => cityDetails(g, i < 5, yllThresholds)).join("\n")}
+  ${groups.map((g, i) => cityDetails(g, i < 5)).join("\n")}
 </section>
 
 <script src="/filter.js" defer></script>
