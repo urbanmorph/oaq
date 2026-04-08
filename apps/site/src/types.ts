@@ -4,6 +4,7 @@ export type Band = "good" | "satisfactory" | "moderate" | "poor" | "vpoor" | "se
 
 export interface NormalizedStation {
   id: string;
+  raw_id: string;
   provider: ProviderId;
   name: string;
   city: string;

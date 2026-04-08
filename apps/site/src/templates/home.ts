@@ -7,10 +7,14 @@ function bandLabel(b: NormalizedStation["band"]): string {
   return BAND_LABELS[b];
 }
 
+function stationHref(s: NormalizedStation): string {
+  return `/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
+}
+
 function rowNumbered(n: number, s: NormalizedStation): string {
   return `<tr>
 <td class="num">${n}</td>
-<td><a href="/s/${esc(s.provider)}/${esc(encodeURIComponent(s.id.split("-").slice(1).join("-")))}">${esc(s.name)}</a></td>
+<td><a href="${esc(stationHref(s))}">${esc(s.name)}</a></td>
 <td>${esc(s.city)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
@@ -20,7 +24,7 @@ function rowNumbered(n: number, s: NormalizedStation): string {
 
 function row(s: NormalizedStation): string {
   return `<tr>
-<td><a href="/s/${esc(s.provider)}/${esc(encodeURIComponent(s.id.split("-").slice(1).join("-")))}">${esc(s.name)}</a></td>
+<td><a href="${esc(stationHref(s))}">${esc(s.name)}</a></td>
 <td>${esc(s.provider)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
@@ -69,7 +73,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
       "@type": "ListItem",
       "position": i + 1,
       "name": `${s.name}, ${s.city}`,
-      "url": `${siteUrl}/s/${s.provider}/${s.id.split("-").slice(1).join("-")}`,
+      "url": `${siteUrl}/s/${s.provider}/${s.raw_id}`,
       "description": `AQI ${s.aqi} (${BAND_LABELS[s.band]}) · PM2.5 ${s.pollutants.pm25 ?? "—"} µg/m³`,
     })),
   };

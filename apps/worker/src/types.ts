@@ -28,7 +28,8 @@ export interface UpstreamStation {
 }
 
 export interface NormalizedStation {
-  id: string;            // "{provider}-{rawId}"
+  id: string;            // "{provider}-{raw_id}" — globally unique
+  raw_id: string;        // upstream id, as-is (may contain hyphens)
   provider: ProviderId;
   name: string;
   city: string;

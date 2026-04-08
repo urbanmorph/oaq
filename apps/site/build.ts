@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import type { Snapshot, NormalizedStation } from "./src/types";
 import { renderHome } from "./src/templates/home";
 import { renderStation } from "./src/templates/station";
-import { slugify } from "./src/util";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, "dist");
@@ -29,11 +28,6 @@ async function fetchSnapshot(): Promise<Snapshot> {
   const res = await fetch(DATA_URL);
   if (!res.ok) throw new Error(`snapshot fetch failed: ${res.status}`);
   return (await res.json()) as Snapshot;
-}
-
-function rawIdOf(s: NormalizedStation): string {
-  // id is "{provider}-{rawId}"; rawId may itself contain hyphens.
-  return s.id.split("-").slice(1).join("-");
 }
 
 function writeFile(path: string, content: string) {
@@ -62,17 +56,22 @@ async function main() {
   // 4. Station pages
   let count = 0;
   const seen = new Set<string>();
+  const SAFE_ID = /^[A-Za-z0-9_-]+$/;
+  let skipped = 0;
   for (const s of snap.stations) {
-    const raw = rawIdOf(s);
-    if (!raw) continue;
-    const key = `${s.provider}/${raw}`;
+    if (!s.raw_id || !SAFE_ID.test(s.raw_id)) {
+      skipped++;
+      continue;
+    }
+    const key = `${s.provider}/${s.raw_id}`;
     if (seen.has(key)) continue;
     seen.add(key);
     const html = renderStation(s, snap.generated_at, SITE_URL);
-    writeFile(join(dist, "s", s.provider, raw, "index.html"), html);
+    // On-disk path uses raw id verbatim — the home template must use the same.
+    writeFile(join(dist, "s", s.provider, s.raw_id, "index.html"), html);
     count++;
   }
-  console.log(`[build] wrote ${count} station pages`);
+  console.log(`[build] wrote ${count} station pages${skipped ? ` (skipped ${skipped} with unsafe raw_id)` : ""}`);
 
   // 5. robots.txt
   writeFile(

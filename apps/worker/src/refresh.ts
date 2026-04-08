@@ -53,15 +53,23 @@ function pickPollutants(raw: UpstreamStation): NormalizedStation["pollutants"] {
   return p;
 }
 
+// Strip trailing agency suffixes like ", Delhi - DPCC" or ", Kanpur - UPPCB".
+// Pattern: a final comma-separated clause that ends with " - XX...X" (2–6 uppercase letters).
+export function cleanStationName(name: string): string {
+  return name.replace(/,\s*[^,]+\s+-\s+[A-Z]{2,6}\s*$/u, "").trim();
+}
+
 function normalize(provider: ProviderId, raw: UpstreamStation): NormalizedStation {
   const { lat, lon } = pickCoords(raw);
   const pollutants = pickPollutants(raw);
   const aqi = computeAqi(pollutants);
-  const id = `${provider}-${String(raw.id ?? raw.name ?? "unknown")}`;
+  const rawId = String(raw.id ?? raw.name ?? "unknown").trim();
+  const id = `${provider}-${rawId}`;
   return {
     id,
+    raw_id: rawId,
     provider,
-    name: String(raw.name ?? "Unknown").trim(),
+    name: cleanStationName(String(raw.name ?? "Unknown").trim()),
     city: String(raw.city ?? "").trim(),
     state: String(raw.state ?? "").trim(),
     lat,

@@ -15,8 +15,7 @@ const POLLUTANT_META: { key: keyof NormalizedStation["pollutants"]; label: strin
 
 export function renderStation(s: NormalizedStation, generatedAt: string, siteUrl: string): string {
   const updated = formatUpdated(generatedAt);
-  const rawId = s.id.split("-").slice(1).join("-");
-  const canonical = `${siteUrl}/s/${s.provider}/${rawId}`;
+  const canonical = `${siteUrl}/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
   const bandLabel = BAND_LABELS[s.band];
 
   const rows = POLLUTANT_META.filter((m) => s.pollutants[m.key] !== undefined)
@@ -65,7 +64,7 @@ export function renderStation(s: NormalizedStation, generatedAt: string, siteUrl
 
 <header>
   <h1>${esc(s.name)}</h1>
-  <p class="muted">${esc(s.city)}${s.state ? `, ${esc(s.state)}` : ""} · ${esc(s.provider.toUpperCase())} · station #${esc(rawId)}</p>
+  <p class="muted">${esc(s.city)}${s.state ? `, ${esc(s.state)}` : ""} · ${esc(s.provider.toUpperCase())} · station #${esc(s.raw_id)}</p>
 </header>
 
 <section class="aqi-hero">

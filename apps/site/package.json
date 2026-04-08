@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsx build.ts",
     "dev": "tsx watch build.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify": "tsx verify.ts"
   },
   "dependencies": {
     "@knadh/oat": "^0.5.1"

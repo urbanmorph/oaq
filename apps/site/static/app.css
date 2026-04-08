@@ -1,20 +1,23 @@
-/* oaq overrides on top of Oat. Keep this tiny. */
+/* oaq overrides on top of Oat. Inherits light/dark from system via Oat's
+   `color-scheme: light dark` + `light-dark()` tokens. */
 
 :root {
+  /* AQI bands — fixed hues (semantic, legible in both themes) with
+     theme-aware foregrounds for the lighter bands. */
   --band-good: #00b050;
   --band-satisfactory: #8bc34a;
   --band-moderate: #ffd633;
   --band-poor: #ff8c00;
   --band-vpoor: #d62828;
   --band-severe: #7a0010;
-  --band-unknown: #999;
+  --band-unknown: light-dark(#999, #666);
 }
 
 main { max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
 
 .hero { margin-block: 1.5rem 2rem; }
 .hero h1 { margin-block-end: 0.25rem; }
-.muted { color: var(--band-unknown); }
+.muted { color: var(--muted-foreground, #71717a); }
 
 .num { font-variant-numeric: tabular-nums; text-align: right; }
 
@@ -47,8 +50,7 @@ details > summary > h3 { display: inline; margin: 0; font-size: 1.05rem; }
   gap: 1.5rem;
   margin-block: 1.5rem;
   padding: 1rem 0;
-  border-block: 1px solid currentColor;
-  border-color: rgba(128, 128, 128, 0.25);
+  border-block: 1px solid var(--border, rgba(128, 128, 128, 0.25));
 }
 .aqi-big {
   font-size: 5rem;
@@ -60,7 +62,7 @@ details > summary > h3 { display: inline; margin: 0; font-size: 1.05rem; }
 
 input[type="search"] { width: 100%; max-width: 32rem; }
 
-#city-filter[hidden], details[hidden] { display: none !important; }
+details[hidden] { display: none !important; }
 
 @media (max-width: 640px) {
   .aqi-big { font-size: 3.5rem; }

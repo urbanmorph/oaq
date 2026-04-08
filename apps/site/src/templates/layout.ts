@@ -22,6 +22,7 @@ export function layout(opts: LayoutOpts): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
 <title>${esc(opts.title)}</title>
 <meta name="description" content="${esc(opts.description)}" />
 ${opts.canonical ? `<link rel="canonical" href="${esc(opts.canonical)}" />` : ""}
