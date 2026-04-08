@@ -105,6 +105,15 @@ components:
         aqi: { type: [integer, "null"], minimum: 0, maximum: 500 }
         band: { $ref: "#/components/schemas/Band" }
         ts: { type: [string, "null"], format: date-time }
+        yll:
+          type: [number, "null"]
+          description: >-
+            AQLI (Air Quality Life Index) — years of life expectancy lost if
+            this PM2.5 level persisted as the annual average, vs the WHO
+            2021 guideline (5 µg/m³). Formula: max(0, PM2.5 − 5) × 0.098.
+            Derived from Ebenstein et al. 2017 PNAS. Null when PM2.5 is
+            missing. See /docs/data-sources#health-impact.
+          example: 3.82
         pollutants:
           type: object
           properties:

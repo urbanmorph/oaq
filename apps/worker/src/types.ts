@@ -48,6 +48,9 @@ export interface NormalizedStation {
   aqi: number | null;
   band: "good" | "satisfactory" | "moderate" | "poor" | "vpoor" | "severe" | "unknown";
   ts: string | null;
+  /** AQLI — years of life expectancy lost if this PM2.5 level persisted as
+   *  the annual average. max(0, pm25 − 5) × 0.098. Null if no pm25. */
+  yll?: number | null;
 }
 
 export interface Snapshot {

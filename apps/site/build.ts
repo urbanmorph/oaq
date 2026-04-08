@@ -134,7 +134,8 @@ ${urls.map((u) => `<url><loc>${u}</loc></url>`).join("\n")}
 
 > Unofficial mirror of oaq.notf.in. ${snap.station_count} stations across India,
 > updated hourly. Data from CPCB, Airnet (CSTEP), and Aurassure via the OAQ
-> Data Broker. MIT-licensed code.
+> Data Broker. Every station page also shows an estimated years-of-life-lost
+> figure from the Air Quality Life Index. MIT-licensed code.
 
 ## Structured entry points
 
@@ -147,9 +148,21 @@ ${urls.map((u) => `<url><loc>${u}</loc></url>`).join("\n")}
 - OpenAPI spec: ${SITE_URL}/openapi.yaml
 - Sitemap: ${SITE_URL}/sitemap.xml
 
+## Health impact (AQLI)
+
+Each station carries a \`yll\` field in the JSON API and a rendered section
+in HTML and Markdown variants. The formula is:
+
+  years_of_life_lost = max(0, PM2.5 − 5) × 0.098
+
+where 0.098 yr per µg/m³ is from Ebenstein et al. 2017 PNAS and 5 µg/m³ is
+the WHO 2021 annual guideline. See /docs/data-sources#health-impact for the
+full citation list and caveats.
+
 ## Attribution
 
 Data © CPCB, Airnet (CSTEP), Aurassure. Licensed CC BY 4.0.
+AQLI methodology © Greenstone et al. (U Chicago EPIC).
 UI built on Oat (https://oat.ink) by Kailash Nadh.
 This is an unaffiliated mirror of https://oaq.notf.in.
 `,

@@ -23,6 +23,7 @@ export interface NormalizedStation {
   aqi: number | null;
   band: Band;
   ts: string | null;
+  yll?: number | null;
 }
 
 export interface Snapshot {

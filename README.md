@@ -6,9 +6,14 @@
 
 ## What this is
 - One HTML page. Worst 50, Best 50, every city's stations as collapsible sections.
-- ~50 KB brotli total, including CSS and JS. Works fully without JavaScript.
+- ~50 KB brotli total, including CSS and JS. Works fully without JavaScript beyond a tiny filter.
 - Every station has HTML, JSON, and Markdown variants for humans, APIs, and LLM agents.
-- Hosted on Cloudflare Pages + Workers + R2. Free tier.
+- **Estimated health impact** on every station — years of life expectancy lost if the current
+  PM2.5 level persisted annually, via the
+  [Air Quality Life Index](https://aqli.epic.uchicago.edu/about/the-index/) formula
+  (Greenstone et al., U Chicago EPIC; Ebenstein et al. 2017 PNAS).
+- Hosted on Cloudflare Pages + Workers + R2. Free tier. Live at
+  **[oaq.pages.dev](https://oaq.pages.dev)**.
 
 ## What this isn't
 - A map. No tiles, no markers.
@@ -37,6 +42,10 @@ Cloudflare Pages (static)
 - **Data** — [oaq.notf.in](https://oaq.notf.in), the Open Air Quality data broker.
 - **Upstream sources** — CPCB (State & Central Pollution Control Board, Government of India), Airnet ([CSTEP](https://cstep.in)), Aurassure (University Clean Air Network).
 - **UI** — [Oat](https://oat.ink) ([github.com/knadh/oat](https://github.com/knadh/oat)) by Kailash Nadh — semantic HTML, ~8 KB CSS + JS, zero dependencies.
+- **Health impact methodology** — [Air Quality Life Index](https://aqli.epic.uchicago.edu/) (AQLI), University of Chicago Energy Policy Institute. Based on:
+  - Ebenstein A., Fan M., Greenstone M., He G., Zhou M. (2017). *New evidence on the impact of sustained exposure to air pollution on life expectancy from China's Huai River Policy*. **PNAS** 114(39): 10384–10389. [doi:10.1073/pnas.1616784114](https://doi.org/10.1073/pnas.1616784114)
+  - Chen Y., Ebenstein A., Greenstone M., Li H. (2013). **PNAS** 110(32): 12936–12941. [doi:10.1073/pnas.1300018110](https://doi.org/10.1073/pnas.1300018110)
+  - WHO 2021 Global Air Quality Guidelines (5 µg/m³ annual PM2.5 baseline).
 
 ## License
 MIT. See [LICENSE](./LICENSE).
