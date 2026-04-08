@@ -146,7 +146,13 @@ table {
   min-width: 0;
   max-width: 100%;
 }
-table.lb { table-layout: fixed; }
+table.lb {
+  table-layout: fixed;
+  /* Size to the sum of colgroup widths, not stretched to the container.
+     Avoids a single huge Station column on wide screens. */
+  width: auto;
+  max-width: 100%;
+}
 table.lb td.trunc { overflow: hidden; text-overflow: ellipsis; }
 table td, table th { padding: 0.35rem 0.5rem; }
 table td.num, table th.num { white-space: nowrap; }

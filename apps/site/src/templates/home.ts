@@ -51,22 +51,24 @@ ${yllCell(s)}
 </tr>`;
 }
 
-// Fixed column widths so "Yrs lost" can never be shoved off the right edge.
+// Every column has an explicit width so the Station column doesn't absorb
+// all remaining space. Table sizes to the sum of these widths (max ≈ 58rem),
+// not the full 72rem container — leaves natural margin around the data.
 const COLGROUP_NUMBERED = `<colgroup>
 <col style="width:2.5rem" />
-<col />
-<col style="width:20%" />
-<col style="width:4.5rem" />
-<col style="width:4rem" />
-<col style="width:6.5rem" />
+<col style="width:22rem" />
+<col style="width:11rem" />
+<col style="width:5rem" />
+<col style="width:5rem" />
+<col style="width:7rem" />
 <col style="width:5.5rem" />
 </colgroup>`;
 
 const COLGROUP_CITY = `<colgroup>
-<col />
-<col style="width:4.5rem" />
-<col style="width:4rem" />
-<col style="width:6.5rem" />
+<col style="width:24rem" />
+<col style="width:5rem" />
+<col style="width:5rem" />
+<col style="width:7rem" />
 <col style="width:5.5rem" />
 </colgroup>`;
 
