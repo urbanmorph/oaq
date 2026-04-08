@@ -97,8 +97,9 @@ ${table(HEAD_CITY, rows, COLGROUP_CITY)}
 export function renderHome(snap: Snapshot, siteUrl: string): string {
   const groups = groupByCity(snap.stations);
   const withAqi = snap.stations.filter((s) => s.aqi !== null) as (NormalizedStation & { aqi: number })[];
-  const worst = withAqi.slice(0, 50); // already sorted worst first
-  const best = [...withAqi].sort((a, b) => a.aqi - b.aqi).slice(0, 50);
+  const N = 20;
+  const worst = withAqi.slice(0, N); // already sorted worst first
+  const best = [...withAqi].sort((a, b) => a.aqi - b.aqi).slice(0, N);
   const updated = formatUpdated(snap.generated_at);
 
   const top5Worst = worst.slice(0, 5);
@@ -109,7 +110,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "India air quality — worst 50 stations",
+    "name": "India air quality — worst 20 stations",
     "dateModified": snap.generated_at,
     "numberOfItems": worst.length,
     "itemListElement": worst.map((s, i) => ({
@@ -145,7 +146,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 </p>
 
 <section id="worst">
-  <h2>Worst 50</h2>
+  <h2>Worst 20</h2>
   ${table(
     HEAD_NUMBERED,
     worst.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
@@ -154,7 +155,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 </section>
 
 <section id="best">
-  <h2>Best 50</h2>
+  <h2>Best 20</h2>
   ${table(
     HEAD_NUMBERED,
     best.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
