@@ -1,5 +1,7 @@
 import { refreshLatest } from "./refresh";
 import { getSignature } from "./handshake";
+import { renderSnapshotMarkdown, renderStationMarkdown } from "./formats";
+import type { Snapshot, NormalizedStation } from "./types";
 
 export interface Env {
   OAQ_KV: KVNamespace;
@@ -13,8 +15,74 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
 
+    const SITE_URL = "https://oaq.pages.dev"; // TODO: wire via env at Phase 5
+
     if (url.pathname === "/health") {
       return Response.json({ ok: true, ts: new Date().toISOString() });
+    }
+
+    // Cached snapshot loader — used by /index.{json,md} and /s/*.json|.md.
+    async function loadSnapshot(): Promise<Snapshot | null> {
+      const obj = await env.OAQ_R2.get("data/latest.json");
+      if (!obj) return null;
+      return (await obj.json()) as Snapshot;
+    }
+
+    // Leaderboard JSON.
+    if (url.pathname === "/index.json") {
+      const snap = await loadSnapshot();
+      if (!snap) return new Response("no snapshot yet", { status: 503 });
+      return new Response(JSON.stringify(snap), {
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "public, s-maxage=900, stale-while-revalidate=3600",
+          "access-control-allow-origin": "*",
+        },
+      });
+    }
+
+    // Leaderboard Markdown.
+    if (url.pathname === "/index.md") {
+      const snap = await loadSnapshot();
+      if (!snap) return new Response("no snapshot yet", { status: 503 });
+      return new Response(renderSnapshotMarkdown(snap, SITE_URL), {
+        headers: {
+          "content-type": "text/markdown; charset=utf-8",
+          "cache-control": "public, s-maxage=900, stale-while-revalidate=3600",
+          "access-control-allow-origin": "*",
+        },
+      });
+    }
+
+    // Per-station JSON / Markdown: /s/{provider}/{raw_id}.{json,md}
+    const stationMatch = url.pathname.match(/^\/s\/([^/]+)\/([^/.]+)\.(json|md)$/);
+    if (stationMatch) {
+      const [, provider, rawId, ext] = stationMatch;
+      const snap = await loadSnapshot();
+      if (!snap) return new Response("no snapshot yet", { status: 503 });
+      const station = snap.stations.find(
+        (s: NormalizedStation) => s.provider === provider && s.raw_id === rawId,
+      );
+      if (!station) return new Response("station not found", { status: 404 });
+      if (ext === "json") {
+        return new Response(
+          JSON.stringify({ generated_at: snap.generated_at, station }),
+          {
+            headers: {
+              "content-type": "application/json; charset=utf-8",
+              "cache-control": "public, s-maxage=900, stale-while-revalidate=3600",
+              "access-control-allow-origin": "*",
+            },
+          },
+        );
+      }
+      return new Response(renderStationMarkdown(station, snap.generated_at, SITE_URL), {
+        headers: {
+          "content-type": "text/markdown; charset=utf-8",
+          "cache-control": "public, s-maxage=900, stale-while-revalidate=3600",
+          "access-control-allow-origin": "*",
+        },
+      });
     }
 
     // Public R2 proxy for dev and for the build script. In production we'll

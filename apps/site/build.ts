@@ -4,6 +4,13 @@ import { fileURLToPath } from "node:url";
 import type { Snapshot, NormalizedStation } from "./src/types";
 import { renderHome } from "./src/templates/home";
 import { renderStation } from "./src/templates/station";
+import {
+  renderDocsIndex,
+  renderApiDocs,
+  renderAiAgents,
+  renderDataSources,
+  renderAbout,
+} from "./src/templates/docs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, "dist");
@@ -50,8 +57,17 @@ async function main() {
   const snap = await fetchSnapshot();
   console.log(`[build] ${snap.station_count} stations, generated_at ${snap.generated_at}`);
 
-  // 3. Homepage
+  // 3. Homepage + docs pages
   writeFile(join(dist, "index.html"), renderHome(snap, SITE_URL));
+  writeFile(join(dist, "docs", "index.html"), renderDocsIndex(SITE_URL));
+  writeFile(join(dist, "docs", "api", "index.html"), renderApiDocs(SITE_URL));
+  writeFile(join(dist, "docs", "ai-agents", "index.html"), renderAiAgents(SITE_URL));
+  writeFile(join(dist, "docs", "data-sources", "index.html"), renderDataSources(SITE_URL));
+  writeFile(join(dist, "about", "index.html"), renderAbout(SITE_URL));
+
+  // Copy openapi.yaml from repo root so /openapi.yaml works.
+  const openapiSrc = join(here, "..", "..", "openapi.yaml");
+  if (existsSync(openapiSrc)) copyFileSync(openapiSrc, join(dist, "openapi.yaml"));
 
   // 4. Station pages
   let count = 0;

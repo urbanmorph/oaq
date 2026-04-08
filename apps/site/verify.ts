@@ -107,7 +107,28 @@ while ((m = sampleLdRe.exec(sample)) !== null) {
 }
 ok(`sample station page (${sampleKey}) passes checks`);
 
-// 8. Byte-size report
+// 8. Docs pages present and valid HTML with required meta
+const docsPages = [
+  "docs/index.html",
+  "docs/api/index.html",
+  "docs/ai-agents/index.html",
+  "docs/data-sources/index.html",
+  "about/index.html",
+];
+for (const p of docsPages) {
+  const full = join(dist, p);
+  if (!existsSync(full)) fail(`missing ${p}`);
+  const html = readFileSync(full, "utf8");
+  if (!html.includes('<meta name="color-scheme"')) fail(`${p} missing color-scheme meta`);
+  if (!html.includes('<link rel="canonical"')) fail(`${p} missing canonical`);
+}
+ok(`${docsPages.length} docs pages present with required meta`);
+
+// 9. openapi.yaml copied
+if (!existsSync(join(dist, "openapi.yaml"))) fail("openapi.yaml missing from dist");
+ok("openapi.yaml present");
+
+// 10. Byte-size report
 const sizes: Record<string, number> = {};
 for (const f of ["index.html", "oat.min.css", "oat.min.js", "app.css", "filter.js"]) {
   sizes[f] = statSync(join(dist, f)).size;
