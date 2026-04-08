@@ -44,11 +44,9 @@ ${opts.extraHead ?? ""}
 ${jsonLdTags}
 </head>
 <body>
-<nav>
-  <ul>
-    <li><strong><a href="/">oaq</a></strong></li>
-  </ul>
-  <ul>
+<nav data-topnav class="site-nav">
+  <a class="brand" href="/"><strong>oaq</strong></a>
+  <ul class="site-links">
     <li><a href="/docs">docs</a></li>
     <li><a href="/docs/api">api</a></li>
     <li><a href="/about">about</a></li>
@@ -60,20 +58,20 @@ ${jsonLdTags}
 ${opts.body}
 </main>
 
-<footer>
+<footer class="site-footer">
   <p>
-    Unofficial mirror of <a href="https://oaq.notf.in">oaq.notf.in</a> — the Open Air Quality data broker. Data:
-    <strong>CPCB</strong> (State &amp; Central Pollution Control Board, Government of India),
-    <strong>Airnet</strong> (<a href="https://cstep.in">CSTEP</a>),
-    <strong>Aurassure</strong> (University Clean Air Network).
+    Unofficial mirror of <a href="https://oaq.notf.in">oaq.notf.in</a> — the Open Air Quality data broker. Data from
+    <strong>CPCB</strong> (Govt. of India),
+    <strong>Airnet</strong> (<a href="https://cstep.in">CSTEP</a>), and
+    <strong>Aurassure</strong>.
   </p>
   <p>
     UI built on <a href="https://oat.ink">Oat</a> by <a href="https://github.com/knadh">Kailash Nadh</a>.
     Code <a href="https://github.com/urbanmorph/oaq/blob/main/LICENSE">MIT-licensed</a>.
-    This site is not affiliated with OAQ, Oat, or any data provider.
+    Not affiliated with OAQ, Oat, or any data provider.
   </p>
-  <p>
-    <a href="/llms.txt">llms.txt</a> · <a href="/sitemap.xml">sitemap</a> · <a href="/robots.txt">robots</a>
+  <p class="footer-links">
+    <a href="/llms.txt">llms.txt</a> · <a href="/sitemap.xml">sitemap</a> · <a href="/robots.txt">robots</a> · <a href="/openapi.yaml">openapi</a>
   </p>
 </footer>
 </body>

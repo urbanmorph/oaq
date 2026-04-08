@@ -1,27 +1,25 @@
-// Post-build sanity check. Reads dist/index.html, extracts every /s/ link,
-// and confirms the corresponding dist/s/{provider}/{id}/index.html exists.
-// Also checks a handful of required meta tags and the filter script.
-import { readFileSync, existsSync, statSync } from "node:fs";
+// Post-build sanity check. Runs a battery of automated checks against dist/.
+// Kept dep-free (pure Node) so it can run in CI without installing anything.
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, "dist");
 
-function fail(msg: string): never {
-  console.error(`[verify] ✘ ${msg}`);
+let failed = 0;
+function ok(msg: string) { console.log(`[verify] ✓ ${msg}`); }
+function warn(msg: string) { console.warn(`[verify] ⚠ ${msg}`); }
+function fail(msg: string) { console.error(`[verify] ✘ ${msg}`); failed++; }
+
+if (!existsSync(join(dist, "index.html"))) {
+  console.error("[verify] dist/index.html missing — run build first");
   process.exit(1);
 }
 
-function ok(msg: string) {
-  console.log(`[verify] ✓ ${msg}`);
-}
-
-if (!existsSync(join(dist, "index.html"))) fail("dist/index.html missing — run build first");
-
 const home = readFileSync(join(dist, "index.html"), "utf8");
 
-// 1. Required meta tags
+// ----- 1. Home meta tags -----
 for (const tag of [
   '<meta name="viewport"',
   '<meta name="color-scheme"',
@@ -32,20 +30,16 @@ for (const tag of [
 ]) {
   if (!home.includes(tag)) fail(`home missing: ${tag}`);
 }
-ok("home meta tags present");
+if (!failed) ok("home meta tags present");
 
-// 2. Filter script
+// ----- 2. Filter script + assets -----
 if (!home.includes('src="/filter.js"')) fail("home missing filter.js reference");
-if (!existsSync(join(dist, "filter.js"))) fail("dist/filter.js missing");
-ok("filter.js referenced and present");
-
-// 3. Oat assets
-for (const f of ["oat.min.css", "oat.min.js", "app.css"]) {
+for (const f of ["filter.js", "oat.min.css", "oat.min.js", "app.css"]) {
   if (!existsSync(join(dist, f))) fail(`dist/${f} missing`);
 }
-ok("oat + app assets present");
+ok("filter.js + oat + app assets present");
 
-// 4. Every station link in home points to a file that exists on disk
+// ----- 3. Every home station link resolves to a file on disk -----
 const hrefRe = /href="\/s\/([^/]+)\/([^"#?]+)"/g;
 const links = new Set<string>();
 let m: RegExpExecArray | null;
@@ -53,61 +47,105 @@ while ((m = hrefRe.exec(home)) !== null) {
   links.add(`${decodeURIComponent(m[1])}/${decodeURIComponent(m[2])}`);
 }
 if (links.size === 0) fail("no station links found in home");
-
 let missing = 0;
 for (const key of links) {
-  const p = join(dist, "s", key, "index.html");
-  if (!existsSync(p)) {
-    console.error(`[verify]   ✘ missing ${p}`);
+  if (!existsSync(join(dist, "s", key, "index.html"))) {
+    console.error(`[verify]   ✘ missing ${key}`);
     missing++;
   }
 }
-if (missing) fail(`${missing}/${links.size} station links have no file on disk`);
-ok(`all ${links.size} home station links resolve to files`);
+if (missing) fail(`${missing}/${links.size} home station links have no file`);
+else ok(`all ${links.size} home station links resolve to files`);
 
-// 5. Every station file is reachable from sitemap
+// ----- 4. Sitemap parity -----
 const sitemap = readFileSync(join(dist, "sitemap.xml"), "utf8");
-const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-const stationUrls = urls.filter((u) => u.includes("/s/"));
-if (stationUrls.length < links.size) {
-  fail(`sitemap has ${stationUrls.length} station URLs but home references ${links.size}`);
+if (!sitemap.startsWith('<?xml')) fail("sitemap.xml missing XML prolog");
+if (!sitemap.includes('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"')) fail("sitemap.xml missing xmlns");
+const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((x) => x[1]);
+const stationSitemap = sitemapUrls.filter((u) => u.includes("/s/"));
+if (stationSitemap.length < links.size) {
+  fail(`sitemap has ${stationSitemap.length} station URLs but home references ${links.size}`);
+} else {
+  ok(`sitemap valid, ${stationSitemap.length} station URLs`);
 }
-ok(`sitemap has ${stationUrls.length} station URLs`);
 
-// 6. JSON-LD parses
-const ldRe = /<script type="application\/ld\+json">([^<]+)<\/script>/g;
+// ----- 5. Home JSON-LD parses + has @context -----
+const ldRe = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g;
 let ldCount = 0;
 while ((m = ldRe.exec(home)) !== null) {
   try {
-    JSON.parse(m[1]);
+    const j = JSON.parse(m[1]);
+    if (j["@context"] !== "https://schema.org") fail(`home JSON-LD ${ldCount} missing @context`);
+    if (!j["@type"]) fail(`home JSON-LD ${ldCount} missing @type`);
     ldCount++;
   } catch (e) {
-    fail(`invalid JSON-LD in home: ${(e as Error).message}`);
+    fail(`home JSON-LD ${ldCount} invalid: ${(e as Error).message}`);
   }
 }
-if (ldCount === 0) fail("no JSON-LD blocks parsed");
-ok(`${ldCount} JSON-LD block(s) valid on home`);
+if (ldCount === 0) fail("no JSON-LD on home");
+else ok(`home JSON-LD: ${ldCount} block(s), schema-valid`);
 
-// 7. Sample a station page
-const sampleKey = [...links][0];
-const samplePath = join(dist, "s", sampleKey, "index.html");
-const sample = readFileSync(samplePath, "utf8");
-for (const tag of [
-  '<meta name="color-scheme"',
-  '<link rel="canonical"',
-  '"@type":"Dataset"',
-  "← Back to leaderboard",
-]) {
-  if (!sample.includes(tag)) fail(`sample station (${sampleKey}) missing: ${tag}`);
+// ----- 6. Audit ALL station pages, not just one -----
+function listStationFiles(dir: string): string[] {
+  const out: string[] = [];
+  if (!existsSync(dir)) return out;
+  for (const provider of readdirSync(dir)) {
+    const pd = join(dir, provider);
+    if (!statSync(pd).isDirectory()) continue;
+    for (const id of readdirSync(pd)) {
+      const f = join(pd, id, "index.html");
+      if (existsSync(f)) out.push(f);
+    }
+  }
+  return out;
 }
-// Parse sample JSON-LD
-const sampleLdRe = /<script type="application\/ld\+json">([^<]+)<\/script>/g;
-while ((m = sampleLdRe.exec(sample)) !== null) {
-  JSON.parse(m[1]); // throws on failure
-}
-ok(`sample station page (${sampleKey}) passes checks`);
+const stationFiles = listStationFiles(join(dist, "s"));
+if (stationFiles.length === 0) fail("no station pages found under dist/s");
 
-// 8. Docs pages present and valid HTML with required meta
+let stationsBadLd = 0;
+let stationsNoH1 = 0;
+let stationsNoCanonical = 0;
+let stationsNoColorScheme = 0;
+let stationsNoOgImage = 0;
+let stationsWithUndefined = 0;
+let stationsBadBand = 0;
+for (const f of stationFiles) {
+  const html = readFileSync(f, "utf8");
+  if (!/<h1>[^<]+<\/h1>/.test(html)) stationsNoH1++;
+  if (!html.includes('<link rel="canonical"')) stationsNoCanonical++;
+  if (!html.includes('<meta name="color-scheme"')) stationsNoColorScheme++;
+  if (!html.includes('<meta property="og:image"')) stationsNoOgImage++;
+  if (/\bundefined\b/.test(html)) stationsWithUndefined++;
+  // Make sure every station uses a known band class on the hero.
+  const bandMatch = html.match(/class="band ([a-z]+)"/);
+  if (bandMatch && !["good", "satisfactory", "moderate", "poor", "vpoor", "severe", "unknown"].includes(bandMatch[1])) {
+    stationsBadBand++;
+  }
+  // JSON-LD validity
+  const lre = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g;
+  let mm: RegExpExecArray | null;
+  while ((mm = lre.exec(html)) !== null) {
+    try {
+      const j = JSON.parse(mm[1]);
+      if (!j["@context"] || !j["@type"]) stationsBadLd++;
+    } catch {
+      stationsBadLd++;
+      break;
+    }
+  }
+}
+if (stationsNoH1) fail(`${stationsNoH1}/${stationFiles.length} station pages missing <h1>`);
+if (stationsNoCanonical) fail(`${stationsNoCanonical}/${stationFiles.length} missing canonical`);
+if (stationsNoColorScheme) fail(`${stationsNoColorScheme}/${stationFiles.length} missing color-scheme`);
+if (stationsNoOgImage) fail(`${stationsNoOgImage}/${stationFiles.length} missing og:image`);
+if (stationsBadLd) fail(`${stationsBadLd}/${stationFiles.length} have invalid JSON-LD`);
+if (stationsBadBand) fail(`${stationsBadBand}/${stationFiles.length} have unknown band class`);
+if (stationsWithUndefined) warn(`${stationsWithUndefined}/${stationFiles.length} contain literal "undefined" text (may be legit in a station name)`);
+if (stationsNoH1 + stationsNoCanonical + stationsNoColorScheme + stationsNoOgImage + stationsBadLd + stationsBadBand === 0) {
+  ok(`all ${stationFiles.length} station pages pass structural + JSON-LD checks`);
+}
+
+// ----- 7. Docs pages -----
 const docsPages = [
   "docs/index.html",
   "docs/api/index.html",
@@ -117,22 +155,48 @@ const docsPages = [
 ];
 for (const p of docsPages) {
   const full = join(dist, p);
-  if (!existsSync(full)) fail(`missing ${p}`);
+  if (!existsSync(full)) { fail(`missing ${p}`); continue; }
   const html = readFileSync(full, "utf8");
-  if (!html.includes('<meta name="color-scheme"')) fail(`${p} missing color-scheme meta`);
+  if (!html.includes('<meta name="color-scheme"')) fail(`${p} missing color-scheme`);
   if (!html.includes('<link rel="canonical"')) fail(`${p} missing canonical`);
+  if (!html.includes('<meta name="description"')) fail(`${p} missing description`);
 }
 ok(`${docsPages.length} docs pages present with required meta`);
 
-// 9. openapi.yaml copied
-if (!existsSync(join(dist, "openapi.yaml"))) fail("openapi.yaml missing from dist");
-ok("openapi.yaml present");
+// ----- 8. openapi.yaml sanity -----
+if (!existsSync(join(dist, "openapi.yaml"))) fail("openapi.yaml missing");
+else {
+  const y = readFileSync(join(dist, "openapi.yaml"), "utf8");
+  if (!/^openapi:\s*3\.1/m.test(y)) fail("openapi.yaml not 3.1");
+  if (!/paths:/m.test(y)) fail("openapi.yaml missing paths");
+  if (!/components:/m.test(y)) fail("openapi.yaml missing components");
+  ok("openapi.yaml present, 3.1, has paths + components");
+}
 
-// 10. Byte-size report
+// ----- 9. robots.txt -----
+const robots = readFileSync(join(dist, "robots.txt"), "utf8");
+for (const ua of ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"]) {
+  if (!robots.includes(`User-agent: ${ua}`)) fail(`robots.txt missing ${ua}`);
+}
+if (!robots.includes("Sitemap:")) fail("robots.txt missing Sitemap");
+ok("robots.txt has all required user-agents + sitemap");
+
+// ----- 10. llms.txt -----
+const llms = readFileSync(join(dist, "llms.txt"), "utf8");
+for (const needle of ["oaq.notf.in", "/index.md", "/index.json", "/sitemap.xml", "CPCB", "Oat"]) {
+  if (!llms.includes(needle)) fail(`llms.txt missing: ${needle}`);
+}
+ok("llms.txt attribution + entry points present");
+
+// ----- 11. Byte sizes -----
 const sizes: Record<string, number> = {};
 for (const f of ["index.html", "oat.min.css", "oat.min.js", "app.css", "filter.js"]) {
   sizes[f] = statSync(join(dist, f)).size;
 }
-ok(`sizes (raw bytes): ${JSON.stringify(sizes)}`);
+ok(`sizes (bytes): ${JSON.stringify(sizes)}`);
 
-console.log("[verify] all checks passed");
+if (failed) {
+  console.error(`\n[verify] ${failed} check(s) FAILED`);
+  process.exit(1);
+}
+console.log("\n[verify] all checks passed");

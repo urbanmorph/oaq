@@ -53,10 +53,47 @@ function pickPollutants(raw: UpstreamStation): NormalizedStation["pollutants"] {
   return p;
 }
 
-// Strip trailing agency suffixes like ", Delhi - DPCC" or ", Kanpur - UPPCB".
-// Pattern: a final comma-separated clause that ends with " - XX...X" (2–6 uppercase letters).
-export function cleanStationName(name: string): string {
-  return name.replace(/,\s*[^,]+\s+-\s+[A-Z]{2,6}\s*$/u, "").trim();
+/**
+ * Strip trailing "city + agency" suffixes from station names.
+ *
+ * The OAQ feed often embeds the city and the reporting agency in the name,
+ * producing strings like:
+ *   "Ashok Vihar, Delhi - DPCC"
+ *   "Sadanand Nagar, Mehsana - Nexteng Enviro"
+ *   "Worli, Mumbai -MPCB"
+ *
+ * When we already know the city from the `city` field, strip from the first
+ * occurrence of ", {city}" onwards. This handles agency names we could never
+ * enumerate (Nexteng Enviro, IPCA Lab, Kerala PCB, Birla Cement, …) without
+ * breaking legitimate names like "Knowledge Park - V" or "North Campus, DU"
+ * where the trailing segment isn't the city.
+ *
+ * Falls back to the old regex for names where we don't have a city.
+ */
+export function cleanStationName(name: string, city?: string): string {
+  let out = name.trim();
+
+  // Step 1: if we know the city, strip ", {city} …" exactly (most precise).
+  if (city) {
+    const c = city.trim();
+    if (c) {
+      const re = new RegExp(`,\\s*${c.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\b.*$`, "iu");
+      out = out.replace(re, "").trim();
+    }
+  }
+
+  // Step 2: generic agency suffix — ", <anything up to 60 chars> - <agency>"
+  // where <agency> is a short uppercase token OR a word that looks like an
+  // agency name (2+ words, or contains "PCB", "Lab", "Cement", "Ltd").
+  // Done after the city step so "Mundka, Delhi - DPCC" gets ", Delhi - DPCC"
+  // stripped even when s.city is "New Delhi".
+  out = out.replace(/,\s*[^,]{1,60}\s*-\s*[A-Z][A-Za-z.]{1,30}(?:\s+[A-Za-z.]{1,30}){0,3}\s*$/u, "").trim();
+
+  // Step 3: no-space dash agency (e.g. "Worli, Mumbai -MPCB").
+  out = out.replace(/,\s*[^,]{1,60}\s*-[A-Z]{2,8}\s*$/u, "").trim();
+
+  // Defensive: never return empty.
+  return out || name.trim();
 }
 
 function normalize(provider: ProviderId, raw: UpstreamStation): NormalizedStation {
@@ -65,12 +102,13 @@ function normalize(provider: ProviderId, raw: UpstreamStation): NormalizedStatio
   const aqi = computeAqi(pollutants);
   const rawId = String(raw.id ?? raw.name ?? "unknown").trim();
   const id = `${provider}-${rawId}`;
+  const city = String(raw.city ?? "").trim();
   return {
     id,
     raw_id: rawId,
     provider,
-    name: cleanStationName(String(raw.name ?? "Unknown").trim()),
-    city: String(raw.city ?? "").trim(),
+    name: cleanStationName(String(raw.name ?? "Unknown").trim(), city),
+    city,
     state: String(raw.state ?? "").trim(),
     lat,
     lon,

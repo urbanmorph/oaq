@@ -13,7 +13,52 @@
   --band-unknown: light-dark(#999, #666);
 }
 
-main { max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
+main { max-width: 72rem; margin: 0 auto; padding: 0 1rem 3rem; }
+
+/* Top navigation — Oat's default nav is a sidebar; we override with a clean
+   top bar that hugs the main content width. */
+nav.site-nav[data-topnav] {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: transparent;
+  border-bottom: 1px solid var(--border, rgba(128,128,128,0.2));
+  box-shadow: none;
+  position: static;
+}
+nav.site-nav .brand {
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: var(--foreground, inherit);
+}
+nav.site-nav .site-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 1.25rem;
+  font-size: 0.95rem;
+}
+nav.site-nav .site-links a { text-decoration: none; color: var(--muted-foreground, #71717a); }
+nav.site-nav .site-links a:hover { color: var(--foreground, inherit); }
+
+/* Footer */
+footer.site-footer {
+  max-width: 72rem;
+  margin: 3rem auto 2rem;
+  padding: 1.5rem 1rem 0;
+  border-top: 1px solid var(--border, rgba(128,128,128,0.2));
+  font-size: 0.9rem;
+  color: var(--muted-foreground, #71717a);
+}
+footer.site-footer p { margin-block: 0.5rem; }
+footer.site-footer a { color: inherit; }
+footer.site-footer .footer-links a { margin-right: 0.25rem; }
 
 .hero { margin-block: 1.5rem 2rem; }
 .hero h1 { margin-block-end: 0.25rem; }

@@ -67,12 +67,10 @@ export function renderStationOg(s: NormalizedStation, generatedAt: string): Resp
       `</div>` +
     `</div>`;
 
-  return new ImageResponse(html, {
-    width: 1200,
-    height: 630,
-    format: "png",
-    headers: {
-      "cache-control": "public, max-age=900, s-maxage=3600, stale-while-revalidate=86400",
-    },
-  });
+  // workers-og adds its own immutable cache-control. We wrap the response to
+  // replace it with our shorter TTL (OG images depend on live AQI values).
+  const img = new ImageResponse(html, { width: 1200, height: 630, format: "png" });
+  const headers = new Headers(img.headers);
+  headers.set("cache-control", "public, max-age=900, s-maxage=3600, stale-while-revalidate=86400");
+  return new Response(img.body, { status: img.status, headers });
 }

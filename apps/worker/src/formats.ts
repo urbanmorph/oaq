@@ -20,6 +20,34 @@ function n(v: number | undefined | null): string {
   return v === undefined || v === null || !Number.isFinite(v) ? "—" : String(v);
 }
 
+function formatIst(iso: string): string {
+  return (
+    new Date(iso).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }) + " IST"
+  );
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+const POLLUTANT_LABELS: Record<string, string> = {
+  pm25: "PM2.5",
+  pm10: "PM10",
+  no2: "NO₂",
+  so2: "SO₂",
+  co: "CO",
+  o3: "O₃",
+  nh3: "NH₃",
+};
+
 function row(s: NormalizedStation, rank: number): string {
   const c = [
     String(rank),
@@ -76,7 +104,7 @@ export function renderSnapshotMarkdown(snap: Snapshot, siteUrl: string): string 
     "",
     "# India Air Quality Leaderboard",
     "",
-    `Updated ${snap.generated_at}. ${snap.station_count} stations ranked by CPCB AQI (worst first). Mirrored hourly from [oaq.notf.in](https://oaq.notf.in).`,
+    `Updated **${formatIst(snap.generated_at)}**. ${snap.station_count} ${snap.station_count === 1 ? "station" : "stations"} ranked by CPCB AQI (worst first). Mirrored hourly from [oaq.notf.in](https://oaq.notf.in).`,
     "",
     "## Worst 50",
     "",
@@ -97,7 +125,7 @@ export function renderSnapshotMarkdown(snap: Snapshot, siteUrl: string): string 
   const cityBlocks = cities
     .map(({ name, arr, avg }) => {
       return [
-        `### ${name} — ${arr.length} stations${avg !== null ? `, avg AQI ${avg}` : ""}`,
+        `### ${name} — ${plural(arr.length, "station")}${avg !== null ? `, avg AQI ${avg}` : ""}`,
         "",
         "| Station | Provider | PM2.5 | AQI | Band |",
         "|---|---|---|---|---|",
@@ -148,6 +176,7 @@ export function renderStationMarkdown(
     `aqi: ${s.aqi ?? "null"}`,
     `band: ${s.band}`,
     `updated: ${generatedAt}`,
+    `updated_local: "${formatIst(generatedAt)}"`,
     `source: https://oaq.notf.in`,
     `mirror: ${siteUrl}/s/${s.provider}/${s.raw_id}`,
     "---",
@@ -155,8 +184,8 @@ export function renderStationMarkdown(
     `# ${s.name} — Air Quality`,
     "",
     s.aqi !== null
-      ? `Current AQI: **${s.aqi} (${bandLabel})** as of ${generatedAt}.`
-      : `No AQI available as of ${generatedAt}.`,
+      ? `Current AQI: **${s.aqi} (${bandLabel})** as of ${formatIst(generatedAt)}.`
+      : `No AQI available as of ${formatIst(generatedAt)}.`,
     "",
     `Located in ${s.city || "—"}${s.state ? `, ${s.state}` : ""}, India. Source: **${PROVIDER_NAMES[s.provider]}** via OAQ.`,
     "",
@@ -168,8 +197,7 @@ export function renderStationMarkdown(
       .filter(([, v]) => v !== undefined)
       .map(([k, v]) => {
         const unit = k === "co" ? "mg/m³" : "µg/m³";
-        const label =
-          k === "pm25" ? "PM2.5" : k === "pm10" ? "PM10" : k === "no2" ? "NO₂" : k === "so2" ? "SO₂" : k === "nh3" ? "NH₃" : k.toUpperCase();
+        const label = POLLUTANT_LABELS[k] ?? k.toUpperCase();
         return `| ${label} | ${v} | ${unit} |`;
       }),
     "",
