@@ -2,6 +2,7 @@ import type { NormalizedStation } from "../types";
 import { BAND_LABELS } from "../types";
 import { esc, fmtNum, formatUpdated } from "../util";
 import { layout } from "./layout";
+import { lifeYearsLost, lifeYearsLostVsIndia, WHO_PM25_GUIDELINE, INDIA_NAAQS_PM25 } from "../aqli";
 
 const POLLUTANT_META: { key: keyof NormalizedStation["pollutants"]; label: string; unit: string; digits: number }[] = [
   { key: "pm25", label: "PM2.5", unit: "µg/m³", digits: 1 },
@@ -83,6 +84,39 @@ export function renderStation(s: NormalizedStation, generatedAt: string, siteUrl
     <tbody>${rows || `<tr><td colspan="3" class="muted">No pollutant data available.</td></tr>`}</tbody>
   </table>
 </section>
+
+${(() => {
+  const yearsWho = lifeYearsLost(s.pollutants.pm25);
+  const yearsIndia = lifeYearsLostVsIndia(s.pollutants.pm25);
+  if (yearsWho === null) return "";
+  const daysWho = Math.round(yearsWho * 365);
+  return `
+<section class="impact">
+  <h2>Estimated health impact</h2>
+  <p class="muted">
+    If this station's current PM2.5 level (${fmtNum(s.pollutants.pm25, 1)} µg/m³) persisted as the
+    <strong>annual average</strong>, the <a href="https://aqli.epic.uchicago.edu/about/the-index/">Air Quality Life Index</a>
+    would estimate:
+  </p>
+  <dl class="impact-grid">
+    <div>
+      <dt>vs. WHO guideline (5 µg/m³)</dt>
+      <dd><strong>${yearsWho.toFixed(2)}</strong> years of life expectancy lost${yearsWho > 0 ? ` (≈ ${daysWho} days)` : ""}</dd>
+    </div>
+    <div>
+      <dt>vs. India NAAQS (40 µg/m³)</dt>
+      <dd><strong>${(yearsIndia ?? 0).toFixed(2)}</strong> years</dd>
+    </div>
+  </dl>
+  <p class="muted small">
+    AQLI formula: <code>max(0, PM2.5 − baseline) × 0.098 years per µg/m³</code>.
+    Derived from Ebenstein et al. 2017 PNAS and Chen et al. 2013 PNAS (Greenstone et al., U Chicago EPIC).
+    This is a long-term-exposure model applied to a live snapshot — treat it as an order-of-magnitude
+    indication, not a personal forecast.
+    <a href="/docs/data-sources#health-impact">More about this calculation</a>.
+  </p>
+</section>`;
+})()}
 
 <section>
   <h2>Metadata</h2>

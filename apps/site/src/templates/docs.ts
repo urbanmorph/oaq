@@ -125,6 +125,43 @@ export function renderAiAgents(siteUrl: string): string {
   });
 }
 
+const HEALTH_IMPACT_SECTION = `
+<section id="health-impact">
+  <h2>Estimated health impact (AQLI)</h2>
+  <p>
+    Each station page shows an estimate of life expectancy lost due to air pollution,
+    using the <a href="https://aqli.epic.uchicago.edu/about/the-index/">Air Quality Life Index</a> (AQLI)
+    formula from the University of Chicago EPIC group.
+  </p>
+  <p>
+    The formula is linear and easy to state:
+  </p>
+  <pre><code>years_of_life_lost = max(0, PM2.5 − baseline) × 0.098</code></pre>
+  <p>where:</p>
+  <ul>
+    <li><code>PM2.5</code> is the long-term (annual average) concentration in µg/m³.</li>
+    <li><code>baseline</code> is the reference level — we show two: <strong>5 µg/m³</strong> (WHO 2021 guideline) and <strong>40 µg/m³</strong> (India NAAQS annual standard).</li>
+    <li><code>0.098</code> years per µg/m³ is derived from Ebenstein et al. 2017 PNAS, which found a 0.98-year reduction in life expectancy per +10 µg/m³ of sustained PM2.5 exposure.</li>
+  </ul>
+
+  <h3>Underlying studies</h3>
+  <ul>
+    <li>Ebenstein A., Fan M., Greenstone M., He G., Zhou M. (2017). <em>New evidence on the impact of sustained exposure to air pollution on life expectancy from China's Huai River Policy</em>. <strong>PNAS</strong> 114(39): 10384–10389. <a href="https://doi.org/10.1073/pnas.1616784114">doi.org/10.1073/pnas.1616784114</a></li>
+    <li>Chen Y., Ebenstein A., Greenstone M., Li H. (2013). <em>Evidence on the impact of sustained exposure to air pollution on life expectancy from China's Huai River policy</em>. <strong>PNAS</strong> 110(32): 12936–12941. <a href="https://doi.org/10.1073/pnas.1300018110">doi.org/10.1073/pnas.1300018110</a></li>
+    <li>Greenstone M., Fan C.Q. (2018). <em>Introducing the Air Quality Life Index</em>. AQLI Annual Report, U Chicago EPIC. <a href="https://aqli.epic.uchicago.edu">aqli.epic.uchicago.edu</a></li>
+    <li>World Health Organization (2021). <em>WHO Global Air Quality Guidelines: Particulate Matter (PM2.5 and PM10), Ozone, Nitrogen Dioxide, Sulfur Dioxide and Carbon Monoxide</em>. Annual PM2.5 guideline: <strong>5 µg/m³</strong>. <a href="https://www.who.int/publications/i/item/9789240034228">who.int</a></li>
+  </ul>
+
+  <h3>Caveats we are honest about</h3>
+  <ul>
+    <li><strong>Long-term vs. live:</strong> AQLI assumes the concentration persists as the annual average. Our readings are hourly snapshots — treat the impact number as an order-of-magnitude indication, not a personal forecast.</li>
+    <li><strong>Linearity at very high concentrations:</strong> Ebenstein et al. acknowledge linearity is an approximation. Integrated exposure-response functions (IER) from the Global Burden of Disease (Burnett et al. 2018) are more sophisticated but harder to summarize in one number. AQLI prefers simplicity and is widely cited in policy contexts.</li>
+    <li><strong>Causality vs. correlation:</strong> the Huai River natural experiment gave unusually strong identification. It is still extrapolation from China to India.</li>
+    <li><strong>Population vs. individual:</strong> "life expectancy lost" is a population-level statistical construct, not a promise about any one person's lifespan.</li>
+  </ul>
+</section>
+`;
+
 export function renderDataSources(siteUrl: string): string {
   return layout({
     title: "Data Sources | oaq",
@@ -188,6 +225,8 @@ export function renderDataSources(siteUrl: string): string {
     The site code is <a href="https://github.com/urbanmorph/oaq/blob/main/LICENSE">MIT-licensed</a>.
   </p>
 </section>
+
+${HEALTH_IMPACT_SECTION}
 
 <section>
   <h2>Update cadence</h2>
