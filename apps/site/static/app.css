@@ -118,6 +118,23 @@ main > section > h2 { margin-block: 0 1rem; }
 .band.vpoor { background: var(--band-vpoor); }
 .band.severe { background: var(--band-severe); }
 
+/* Small outline pill next to station name showing the data provider. */
+.provider-pill {
+  display: inline-block;
+  padding: 0.05em 0.45em;
+  margin-left: 0.35em;
+  border-radius: 0.2em;
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid currentColor;
+  vertical-align: 0.1em;
+}
+.provider-pill.p-cpcb      { color: #5b7cff; }
+.provider-pill.p-airnet    { color: #a066ff; }
+.provider-pill.p-aurassure { color: #00b4a0; }
+
 /* Horizontal scroll wrapper so wide leaderboard tables never push layout
    off-screen on narrow viewports. */
 .table-wrap {

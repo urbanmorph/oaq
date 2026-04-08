@@ -39,10 +39,14 @@ function stationHref(s: NormalizedStation): string {
   return `/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
 }
 
+function stationCell(s: NormalizedStation): string {
+  return `<a href="${esc(stationHref(s))}">${esc(s.name)}</a> <span class="provider-pill p-${esc(s.provider)}">${esc(s.provider)}</span>`;
+}
+
 function rowNumbered(n: number, s: NormalizedStation): string {
   return `<tr>
 <td class="num">${n}</td>
-<td><a href="${esc(stationHref(s))}">${esc(s.name)}</a></td>
+<td>${stationCell(s)}</td>
 <td>${esc(s.city)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
@@ -53,8 +57,7 @@ ${yllCell(s)}
 
 function row(s: NormalizedStation): string {
   return `<tr>
-<td><a href="${esc(stationHref(s))}">${esc(s.name)}</a></td>
-<td>${esc(s.provider)}</td>
+<td>${stationCell(s)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
 <td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
@@ -76,7 +79,7 @@ function cityDetails(g: CityGroup, open: boolean): string {
   return `<details id="${esc(g.slug)}"${open ? " open" : ""}>
 <summary><h3>${esc(g.name)} — ${g.stations.length} ${stationWord} · ${esc(avg)}</h3></summary>
 ${table(
-    `<th>Station</th><th>Provider</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
+    `<th>Station</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     rows,
   )}
 </details>`;
