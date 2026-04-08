@@ -89,9 +89,6 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   <p class="muted">
     Formats: <a href="/index.json">/index.json</a> · <a href="/index.md">/index.md</a>
   </p>
-  <p>
-    <input type="search" id="city-filter" placeholder="search your city…  (try &quot;delhi&quot;, &quot;ghazi&quot;, &quot;bengal&quot;)" autocomplete="off" />
-  </p>
 </header>
 
 <section id="worst">
@@ -112,6 +109,9 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 
 <section id="all">
   <h2>All stations by city</h2>
+  <p>
+    <input type="search" id="city-filter" placeholder="search your city…  (try &quot;delhi&quot;, &quot;ghazi&quot;, &quot;bengal&quot;)" autocomplete="off" />
+  </p>
   ${groups.map((g, i) => cityDetails(g, i < 5)).join("\n")}
 </section>
 
