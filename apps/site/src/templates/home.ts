@@ -46,7 +46,7 @@ function cityDetails(g: CityGroup, open: boolean): string {
   return `<details id="${esc(g.slug)}"${open ? " open" : ""}>
 <summary><h3>${esc(g.name)} — ${g.stations.length} ${stationWord} · ${esc(avg)}</h3></summary>
 ${table(
-    `<th>Station</th><th>Provider</th><th>PM2.5</th><th>AQI</th><th>Band</th>`,
+    `<th>Station</th><th>Provider</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>`,
     rows,
   )}
 </details>`;
@@ -94,7 +94,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 <section id="worst">
   <h2>Worst 50</h2>
   ${table(
-    `<th>#</th><th>Station</th><th>City</th><th>PM2.5</th><th>AQI</th><th>Band</th>`,
+    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>`,
     worst.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
   )}
 </section>
@@ -102,7 +102,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 <section id="best">
   <h2>Best 50</h2>
   ${table(
-    `<th>#</th><th>Station</th><th>City</th><th>PM2.5</th><th>AQI</th><th>Band</th>`,
+    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>`,
     best.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
   )}
 </section>
