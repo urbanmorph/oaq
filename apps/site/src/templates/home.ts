@@ -65,8 +65,29 @@ ${yllCell(s)}
 </tr>`;
 }
 
-function table(header: string, body: string): string {
-  return `<div class="table-wrap"><table>
+// Column layouts keep the header row honest: fixed percentages so "Yrs lost"
+// can't be shoved off the right edge. Two variants matching the two tables.
+const COLGROUP_NUMBERED = `<colgroup>
+<col style="width:3rem" />
+<col />
+<col style="width:22%" />
+<col style="width:5rem" />
+<col style="width:5rem" />
+<col style="width:7rem" />
+<col style="width:6rem" />
+</colgroup>`;
+
+const COLGROUP_CITY = `<colgroup>
+<col />
+<col style="width:5rem" />
+<col style="width:5rem" />
+<col style="width:7rem" />
+<col style="width:6rem" />
+</colgroup>`;
+
+function table(header: string, body: string, colgroup: string): string {
+  return `<div class="table-wrap"><table class="lb">
+${colgroup}
 <thead><tr>${header}</tr></thead>
 <tbody>${body}</tbody>
 </table></div>`;
@@ -81,6 +102,7 @@ function cityDetails(g: CityGroup, open: boolean): string {
 ${table(
     `<th>Station</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     rows,
+    COLGROUP_CITY,
   )}
 </details>`;
 }
@@ -140,6 +162,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   ${table(
     `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     worst.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
+    COLGROUP_NUMBERED,
   )}
 </section>
 
@@ -148,6 +171,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   ${table(
     `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     best.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
+    COLGROUP_NUMBERED,
   )}
 </section>
 

@@ -144,9 +144,14 @@ table {
   width: 100%;
   min-width: 0;          /* beat Oat's 320px */
   max-width: 100%;
-  table-layout: auto;
   overflow-x: visible;   /* beat Oat's overflow-x: auto */
 }
+/* Leaderboard tables use fixed layout so colgroup widths are honored
+   and no column can overflow the container. Other tables (pollutants
+   on the station page) keep auto layout. */
+table.lb { table-layout: fixed; }
+table.lb td, table.lb th { overflow: hidden; text-overflow: ellipsis; }
+table.lb td:has(.band), table.lb td:has(.yll) { overflow: visible; }
 table td, table th { padding: 0.35rem 0.5rem; }
 /* Keep numeric cells and badges on one line; station names can wrap. */
 table td.num, table th.num { white-space: nowrap; }
