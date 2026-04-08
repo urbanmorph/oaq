@@ -16,6 +16,7 @@ const POLLUTANT_META: { key: keyof NormalizedStation["pollutants"]; label: strin
 export function renderStation(s: NormalizedStation, generatedAt: string, siteUrl: string): string {
   const updated = formatUpdated(generatedAt);
   const canonical = `${siteUrl}/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
+  const ogImage = `${siteUrl}/og/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}.png`;
   const bandLabel = BAND_LABELS[s.band];
 
   const rows = POLLUTANT_META.filter((m) => s.pollutants[m.key] !== undefined)
@@ -109,5 +110,6 @@ export function renderStation(s: NormalizedStation, generatedAt: string, siteUrl
     siteUrl,
     body,
     jsonLd,
+    ogImage,
   });
 }

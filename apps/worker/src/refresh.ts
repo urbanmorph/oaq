@@ -85,6 +85,13 @@ async function fetchProvider(env: Env, provider: ProviderId): Promise<UpstreamSt
   const sig = await getSignature(env);
   const url = signUrl(sig, `provider=${provider}/live/global/all_stations_latest.json`);
   const res = await fetch(url, { cf: { cacheEverything: false } });
+  // Log any rate-limit headers the upstream exposes so we notice if we get close.
+  const used = res.headers.get("x-ratelimit-used");
+  const remaining = res.headers.get("x-ratelimit-remaining");
+  const limit = res.headers.get("x-ratelimit-limit");
+  if (used || remaining || limit) {
+    console.log(`[ratelimit] ${provider} used=${used} remaining=${remaining} limit=${limit}`);
+  }
   if (!res.ok) {
     throw new Error(`provider ${provider} fetch failed: ${res.status} ${await res.text().catch(() => "")}`);
   }

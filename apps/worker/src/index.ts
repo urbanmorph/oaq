@@ -1,6 +1,8 @@
 import { refreshLatest } from "./refresh";
+import { refreshHierarchy } from "./hierarchy";
 import { getSignature } from "./handshake";
 import { renderSnapshotMarkdown, renderStationMarkdown } from "./formats";
+import { renderStationOg } from "./og";
 import type { Snapshot, NormalizedStation } from "./types";
 
 export interface Env {
@@ -52,6 +54,19 @@ export default {
           "access-control-allow-origin": "*",
         },
       });
+    }
+
+    // Per-station OG image: /og/s/{provider}/{raw_id}.png (rendered via workers-og).
+    const ogMatch = url.pathname.match(/^\/og\/s\/([^/]+)\/([^/.]+)\.png$/);
+    if (ogMatch) {
+      const [, provider, rawId] = ogMatch;
+      const snap = await loadSnapshot();
+      if (!snap) return new Response("no snapshot yet", { status: 503 });
+      const station = snap.stations.find(
+        (s: NormalizedStation) => s.provider === provider && s.raw_id === rawId,
+      );
+      if (!station) return new Response("station not found", { status: 404 });
+      return renderStationOg(station, snap.generated_at);
     }
 
     // Per-station JSON / Markdown: /s/{provider}/{raw_id}.{json,md}
@@ -145,6 +160,14 @@ export default {
         ),
       );
     }
-    // Daily hierarchy refresh lands in a follow-up commit (Phase 2.1).
+    // Daily hierarchy refresh.
+    if (event.cron === "30 20 * * *") {
+      ctx.waitUntil(
+        refreshHierarchy(env).then(
+          (r) => console.log(`[hierarchy] providers=${r.providers} hierarchies=${r.hierarchies}`),
+          (e) => console.error("[hierarchy] failed:", e),
+        ),
+      );
+    }
   },
 };

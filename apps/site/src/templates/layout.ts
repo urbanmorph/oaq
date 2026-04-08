@@ -8,6 +8,7 @@ export interface LayoutOpts {
   body: string;
   siteUrl: string;
   jsonLd?: object | object[];
+  ogImage?: string;
 }
 
 export function layout(opts: LayoutOpts): string {
@@ -30,7 +31,11 @@ ${opts.canonical ? `<link rel="canonical" href="${esc(opts.canonical)}" />` : ""
 <meta property="og:description" content="${esc(opts.description)}" />
 <meta property="og:type" content="website" />
 ${opts.canonical ? `<meta property="og:url" content="${esc(opts.canonical)}" />` : ""}
-<meta name="twitter:card" content="summary" />
+${opts.ogImage ? `<meta property="og:image" content="${esc(opts.ogImage)}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />` : ""}
+<meta name="twitter:card" content="${opts.ogImage ? "summary_large_image" : "summary"}" />
+${opts.ogImage ? `<meta name="twitter:image" content="${esc(opts.ogImage)}" />` : ""}
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="stylesheet" href="/oat.min.css" />
 <link rel="stylesheet" href="/app.css" />
