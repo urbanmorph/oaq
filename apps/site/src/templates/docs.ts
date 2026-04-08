@@ -152,6 +152,29 @@ const HEALTH_IMPACT_SECTION = `
     <li>World Health Organization (2021). <em>WHO Global Air Quality Guidelines: Particulate Matter (PM2.5 and PM10), Ozone, Nitrogen Dioxide, Sulfur Dioxide and Carbon Monoxide</em>. Annual PM2.5 guideline: <strong>5 µg/m³</strong>. <a href="https://www.who.int/publications/i/item/9789240034228">who.int</a></li>
   </ul>
 
+  <h3>Why AQI and Yrs lost can disagree</h3>
+  <p>
+    A common point of confusion: a station labeled "Very Poor" (AQI) can have a
+    <em>lower</em> Yrs lost than one labeled "Poor". This is not an error — the two
+    metrics measure different things:
+  </p>
+  <ul>
+    <li><strong>AQI</strong> is the <em>maximum</em> sub-index across seven pollutants
+      (PM2.5, PM10, NO₂, SO₂, CO, O₃, NH₃). If ozone spikes, AQI goes "Very Poor"
+      even when PM2.5 is mild. The AQI number represents "the worst pollutant here right
+      now", not "the most life-shortening".</li>
+    <li><strong>Yrs lost (AQLI)</strong> is derived from <em>PM2.5 only</em>. The Huai River
+      studies (Chen 2013, Ebenstein 2017) specifically quantified sustained PM2.5 exposure
+      against mortality. They make no claim about other pollutants.</li>
+  </ul>
+  <p>
+    So a station can be "Poor" by AQI yet have a higher Yrs lost than a "Very Poor" one
+    when PM2.5 dominates its emission profile (industrial / traffic / biomass-smoke cities
+    vs. an ozone-heavy station). Both figures are meaningful; they answer different
+    questions. If you care about "how unsafe is it to go for a walk right now?", look at
+    AQI. If you care about "how much shorter are lives here on average?", look at Yrs lost.
+  </p>
+
   <h3>Caveats we are honest about</h3>
   <ul>
     <li><strong>Long-term vs. live:</strong> AQLI assumes the concentration persists as the annual average. Our readings are hourly snapshots — treat the impact number as an order-of-magnitude indication, not a personal forecast.</li>

@@ -122,9 +122,13 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 </header>
 
 <p class="muted small">
-  <strong>Yrs lost</strong> column = years of life expectancy lost if this station's PM2.5 level persisted as the annual average, per the
-  <a href="https://aqli.epic.uchicago.edu/about/the-index/">Air Quality Life Index</a> (Greenstone et al., U Chicago EPIC; Ebenstein et al. 2017 PNAS)
-  applied against the WHO 5 µg/m³ guideline.
+  <strong>AQI vs Yrs lost</strong> — AQI is the worst sub-index across 7 pollutants
+  (PM2.5, PM10, NO₂, SO₂, CO, O₃, NH₃), so a station can be "Very Poor" from ozone
+  alone. <strong>Yrs lost</strong> is based only on PM2.5 (the
+  <a href="https://aqli.epic.uchicago.edu/about/the-index/">Air Quality Life Index</a>
+  from Greenstone et al. / Ebenstein et al. 2017 PNAS studies PM2.5 specifically).
+  A station can be "Poor" by AQI yet have higher Yrs lost than a "Very Poor" one when
+  its PM2.5 dominates. Both are reported here so you can see the gap.
   <a href="/docs/data-sources#health-impact">Methodology &amp; caveats →</a>
 </p>
 
