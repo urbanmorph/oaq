@@ -17,6 +17,19 @@ export default {
       return Response.json({ ok: true, ts: new Date().toISOString() });
     }
 
+    // Public R2 proxy for dev and for the build script. In production we'll
+    // front R2 with a custom domain and skip this hop, but during local dev
+    // the build script fetches http://127.0.0.1:8787/data/latest.json.
+    if (url.pathname.startsWith("/data/")) {
+      const key = url.pathname.slice(1); // "data/latest.json"
+      const obj = await env.OAQ_R2.get(key);
+      if (!obj) return new Response("not found", { status: 404 });
+      const headers = new Headers();
+      obj.writeHttpMetadata(headers);
+      headers.set("cache-control", "public, max-age=60");
+      return new Response(obj.body, { headers });
+    }
+
     // Manual trigger for local dev & smoke tests: /refresh?key=OAQ_API_KEY.
     if (url.pathname === "/refresh") {
       const key = url.searchParams.get("key");

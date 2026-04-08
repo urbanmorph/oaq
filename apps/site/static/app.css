@@ -1,0 +1,68 @@
+/* oaq overrides on top of Oat. Keep this tiny. */
+
+:root {
+  --band-good: #00b050;
+  --band-satisfactory: #8bc34a;
+  --band-moderate: #ffd633;
+  --band-poor: #ff8c00;
+  --band-vpoor: #d62828;
+  --band-severe: #7a0010;
+  --band-unknown: #999;
+}
+
+main { max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
+
+.hero { margin-block: 1.5rem 2rem; }
+.hero h1 { margin-block-end: 0.25rem; }
+.muted { color: var(--band-unknown); }
+
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+.band {
+  display: inline-block;
+  padding: 0.15em 0.6em;
+  border-radius: 0.25em;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #fff;
+  background: var(--band-unknown);
+}
+.band.good { background: var(--band-good); }
+.band.satisfactory { background: var(--band-satisfactory); color: #111; }
+.band.moderate { background: var(--band-moderate); color: #111; }
+.band.poor { background: var(--band-poor); }
+.band.vpoor { background: var(--band-vpoor); }
+.band.severe { background: var(--band-severe); }
+
+table { width: 100%; }
+table td, table th { padding: 0.35rem 0.5rem; }
+
+details { margin-block: 0.75rem; }
+details > summary { cursor: pointer; }
+details > summary > h3 { display: inline; margin: 0; font-size: 1.05rem; }
+
+.aqi-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-block: 1.5rem;
+  padding: 1rem 0;
+  border-block: 1px solid currentColor;
+  border-color: rgba(128, 128, 128, 0.25);
+}
+.aqi-big {
+  font-size: 5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+input[type="search"] { width: 100%; max-width: 32rem; }
+
+#city-filter[hidden], details[hidden] { display: none !important; }
+
+@media (max-width: 640px) {
+  .aqi-big { font-size: 3.5rem; }
+  table td, table th { padding: 0.3rem 0.35rem; font-size: 0.9rem; }
+}

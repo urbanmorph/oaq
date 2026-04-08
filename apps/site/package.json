@@ -12,6 +12,7 @@
     "@knadh/oat": "^0.5.1"
   },
   "devDependencies": {
+    "@types/node": "^25.5.2",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }
