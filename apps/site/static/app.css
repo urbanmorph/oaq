@@ -13,7 +13,10 @@
   --band-unknown: light-dark(#999, #666);
 }
 
-main { max-width: 72rem; margin: 0 auto; padding: 0 1rem 3rem; }
+/* overflow-x:hidden is a belt-and-braces guard: no matter what a child
+   tries to do, the viewport never gets a horizontal scrollbar. */
+html, body { overflow-x: hidden; }
+main { max-width: 72rem; margin: 0 auto; padding: 0 1rem 3rem; overflow-x: hidden; }
 
 /* Top navigation — Oat's default nav is a sidebar; we override with a clean
    top bar that hugs the main content width. */
@@ -82,8 +85,8 @@ main > section > h2 { margin-block: 0 1rem; }
 .impact-grid dd strong { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
 .small { font-size: 0.85rem; }
 
-/* Years-of-life-lost pill — absolute bands (not quantile) so colors stay
-   comparable across days. Thresholds: 1, 2, 3, 4 yr (WHO→India NAAQS range). */
+/* Years-of-life-lost pill — absolute bands (1/2/3/4 yr thresholds).
+   Palette reuses the AQI band tokens for one source of truth. */
 .yll {
   display: inline-block;
   padding: 0.15em 0.55em;
@@ -93,11 +96,11 @@ main > section > h2 { margin-block: 0 1rem; }
   font-variant-numeric: tabular-nums;
   color: #fff;
 }
-.yll-1 { background: #00b050; }            /* cleanest quintile */
-.yll-2 { background: #8bc34a; color: #111; }
-.yll-3 { background: #ffd633; color: #111; }
-.yll-4 { background: #ff8c00; }
-.yll-5 { background: #d62828; }            /* dirtiest quintile */
+.yll-1 { background: var(--band-good); }
+.yll-2 { background: var(--band-satisfactory); color: #111; }
+.yll-3 { background: var(--band-moderate); color: #111; }
+.yll-4 { background: var(--band-poor); }
+.yll-5 { background: var(--band-severe); }
 .muted { color: var(--muted-foreground, #71717a); }
 
 .num { font-variant-numeric: tabular-nums; text-align: right; }
@@ -135,25 +138,17 @@ main > section > h2 { margin-block: 0 1rem; }
 .provider-pill.p-airnet    { color: #a066ff; }
 .provider-pill.p-aurassure { color: #00b4a0; }
 
-/* Scroll wrapper is invisible on desktop — only becomes a scroll container
-   below 640px. Overrides Oat's table { min-width: 320px; overflow-x: auto }
-   which was forcing a scrollbar even when content fit. */
-.table-wrap { width: 100%; max-width: 100%; }
-
+/* Tables. Leaderboard tables (table.lb) use fixed layout with an explicit
+   <colgroup> so no column can push beyond the container. Overrides Oat's
+   min-width:320px that would otherwise force overflow. */
 table {
   width: 100%;
-  min-width: 0;          /* beat Oat's 320px */
+  min-width: 0;
   max-width: 100%;
-  overflow-x: visible;   /* beat Oat's overflow-x: auto */
 }
-/* Leaderboard tables use fixed layout so colgroup widths are honored
-   and no column can overflow the container. Other tables (pollutants
-   on the station page) keep auto layout. */
 table.lb { table-layout: fixed; }
-table.lb td, table.lb th { overflow: hidden; text-overflow: ellipsis; }
-table.lb td:has(.band), table.lb td:has(.yll) { overflow: visible; }
+table.lb td.trunc { overflow: hidden; text-overflow: ellipsis; }
 table td, table th { padding: 0.35rem 0.5rem; }
-/* Keep numeric cells and badges on one line; station names can wrap. */
 table td.num, table th.num { white-space: nowrap; }
 table td .band, table td .yll, table td .provider-pill { white-space: nowrap; }
 
@@ -182,11 +177,6 @@ input[type="search"] { width: 100%; max-width: 32rem; }
 details[hidden] { display: none !important; }
 
 @media (max-width: 640px) {
-  /* Below 640px, allow tables to scroll horizontally inside their wrapper
-     as a fallback for very narrow phones. */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .table-wrap > table { min-width: max-content; }
-
   main { padding: 0 0.75rem 2rem; }
   nav.site-nav[data-topnav] {
     padding: 1.25rem 0.75rem 0.75rem;

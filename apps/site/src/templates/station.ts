@@ -2,7 +2,7 @@ import type { NormalizedStation } from "../types";
 import { BAND_LABELS } from "../types";
 import { esc, fmtNum, formatUpdated } from "../util";
 import { layout } from "./layout";
-import { lifeYearsLost, lifeYearsLostVsIndia, WHO_PM25_GUIDELINE, INDIA_NAAQS_PM25 } from "../aqli";
+import { lifeYearsLost, lifeYearsLostVsIndia } from "../aqli";
 
 const POLLUTANT_META: { key: keyof NormalizedStation["pollutants"]; label: string; unit: string; digits: number }[] = [
   { key: "pm25", label: "PM2.5", unit: "µg/m³", digits: 1 },

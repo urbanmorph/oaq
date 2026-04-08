@@ -4,93 +4,82 @@ import { esc, fmtNum, formatUpdated, groupByCity } from "../util";
 import { layout } from "./layout";
 import { lifeYearsLost } from "../aqli";
 
-// Absolute (not quantile) banding for years of life lost. Thresholds chosen
-// to be stable across days and tied to meaningful real-world reference points:
-//
-//   yll-1  ≤ 1 yr   —  near WHO 5 µg/m³ safe zone (excess PM2.5 ≲ 10)
-//   yll-2  ≤ 2 yr   —  WHO Interim Target 4 range (PM2.5 ≲ 25)
-//   yll-3  ≤ 3 yr   —  approaching India NAAQS annual standard
-//   yll-4  ≤ 4 yr   —  around India NAAQS (40 µg/m³ → 3.43 yr)
-//   yll-5  > 4 yr   —  exceeds India's own standard
-//
-// These correspond to PM2.5 excess of ~10/~20/~30/~40+ µg/m³ above the
-// WHO guideline, roughly aligning with the AQI "good/mod/poor/vpoor/severe"
-// narrative while staying comparable from one snapshot to the next.
-function yllBucket(years: number): 1 | 2 | 3 | 4 | 5 {
-  if (years <= 1) return 1;
-  if (years <= 2) return 2;
-  if (years <= 3) return 3;
-  if (years <= 4) return 4;
+// Absolute (not quantile) yll bands so colors are stable day-to-day.
+// Thresholds: 1, 2, 3, 4 yr — aligned with WHO → India NAAQS range.
+function yllBucket(y: number): 1 | 2 | 3 | 4 | 5 {
+  if (y <= 1) return 1;
+  if (y <= 2) return 2;
+  if (y <= 3) return 3;
+  if (y <= 4) return 4;
   return 5;
 }
 
 function yllCell(s: NormalizedStation): string {
   const y = lifeYearsLost(s.pollutants.pm25);
   if (y === null) return `<td class="num"><span class="band unknown">—</span></td>`;
-  const b = yllBucket(y);
-  return `<td class="num"><span class="yll yll-${b}" title="AQLI: ${y.toFixed(2)} years of life expectancy lost vs WHO 5 µg/m³ baseline">${y.toFixed(1)} yr</span></td>`;
-}
-
-function bandLabel(b: NormalizedStation["band"]): string {
-  return BAND_LABELS[b];
-}
-
-function stationHref(s: NormalizedStation): string {
-  return `/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
+  return `<td class="num"><span class="yll yll-${yllBucket(y)}" title="AQLI: ${y.toFixed(2)} years of life expectancy lost vs WHO 5 µg/m³ baseline">${y.toFixed(1)} yr</span></td>`;
 }
 
 function stationCell(s: NormalizedStation): string {
-  return `<a href="${esc(stationHref(s))}">${esc(s.name)}</a> <span class="provider-pill p-${esc(s.provider)}">${esc(s.provider)}</span>`;
+  const href = `/s/${encodeURIComponent(s.provider)}/${encodeURIComponent(s.raw_id)}`;
+  return `<a href="${esc(href)}">${esc(s.name)}</a> <span class="provider-pill p-${esc(s.provider)}">${esc(s.provider)}</span>`;
+}
+
+function bandCell(s: NormalizedStation): string {
+  return `<td><span class="band ${esc(s.band)}">${esc(BAND_LABELS[s.band])}</span></td>`;
 }
 
 function rowNumbered(n: number, s: NormalizedStation): string {
   return `<tr>
 <td class="num">${n}</td>
-<td>${stationCell(s)}</td>
-<td>${esc(s.city)}</td>
+<td class="trunc">${stationCell(s)}</td>
+<td class="trunc">${esc(s.city)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
-<td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
+${bandCell(s)}
 ${yllCell(s)}
 </tr>`;
 }
 
 function row(s: NormalizedStation): string {
   return `<tr>
-<td>${stationCell(s)}</td>
+<td class="trunc">${stationCell(s)}</td>
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
-<td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
+${bandCell(s)}
 ${yllCell(s)}
 </tr>`;
 }
 
-// Column layouts keep the header row honest: fixed percentages so "Yrs lost"
-// can't be shoved off the right edge. Two variants matching the two tables.
+// Fixed column widths so "Yrs lost" can never be shoved off the right edge.
 const COLGROUP_NUMBERED = `<colgroup>
-<col style="width:3rem" />
+<col style="width:2.5rem" />
 <col />
-<col style="width:22%" />
-<col style="width:5rem" />
-<col style="width:5rem" />
-<col style="width:7rem" />
-<col style="width:6rem" />
+<col style="width:20%" />
+<col style="width:4.5rem" />
+<col style="width:4rem" />
+<col style="width:6.5rem" />
+<col style="width:5.5rem" />
 </colgroup>`;
 
 const COLGROUP_CITY = `<colgroup>
 <col />
-<col style="width:5rem" />
-<col style="width:5rem" />
-<col style="width:7rem" />
-<col style="width:6rem" />
+<col style="width:4.5rem" />
+<col style="width:4rem" />
+<col style="width:6.5rem" />
+<col style="width:5.5rem" />
 </colgroup>`;
 
+const YLL_TH = `<th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`;
+const HEAD_NUMBERED = `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>${YLL_TH}`;
+const HEAD_CITY = `<th>Station</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>${YLL_TH}`;
+
 function table(header: string, body: string, colgroup: string): string {
-  return `<div class="table-wrap"><table class="lb">
+  return `<table class="lb">
 ${colgroup}
 <thead><tr>${header}</tr></thead>
 <tbody>${body}</tbody>
-</table></div>`;
+</table>`;
 }
 
 function cityDetails(g: CityGroup, open: boolean): string {
@@ -99,11 +88,7 @@ function cityDetails(g: CityGroup, open: boolean): string {
   const stationWord = g.stations.length === 1 ? "station" : "stations";
   return `<details id="${esc(g.slug)}"${open ? " open" : ""}>
 <summary><h3>${esc(g.name)} — ${g.stations.length} ${stationWord} · ${esc(avg)}</h3></summary>
-${table(
-    `<th>Station</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
-    rows,
-    COLGROUP_CITY,
-  )}
+${table(HEAD_CITY, rows, COLGROUP_CITY)}
 </details>`;
 }
 
@@ -160,7 +145,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 <section id="worst">
   <h2>Worst 50</h2>
   ${table(
-    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
+    HEAD_NUMBERED,
     worst.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
     COLGROUP_NUMBERED,
   )}
@@ -169,7 +154,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 <section id="best">
   <h2>Best 50</h2>
   ${table(
-    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
+    HEAD_NUMBERED,
     best.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
     COLGROUP_NUMBERED,
   )}
