@@ -2,6 +2,13 @@ import type { Snapshot, NormalizedStation, CityGroup } from "../types";
 import { BAND_LABELS } from "../types";
 import { esc, fmtNum, formatUpdated, groupByCity } from "../util";
 import { layout } from "./layout";
+import { lifeYearsLost } from "../aqli";
+
+function yllCell(s: NormalizedStation): string {
+  const y = lifeYearsLost(s.pollutants.pm25);
+  if (y === null) return `<td class="num muted">—</td>`;
+  return `<td class="num">${y.toFixed(1)}</td>`;
+}
 
 function bandLabel(b: NormalizedStation["band"]): string {
   return BAND_LABELS[b];
@@ -19,6 +26,7 @@ function rowNumbered(n: number, s: NormalizedStation): string {
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
 <td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
+${yllCell(s)}
 </tr>`;
 }
 
@@ -29,6 +37,7 @@ function row(s: NormalizedStation): string {
 <td class="num">${fmtNum(s.pollutants.pm25, 0)}</td>
 <td class="num"><strong>${fmtNum(s.aqi, 0)}</strong></td>
 <td><span class="band ${esc(s.band)}">${esc(bandLabel(s.band))}</span></td>
+${yllCell(s)}
 </tr>`;
 }
 
@@ -46,7 +55,7 @@ function cityDetails(g: CityGroup, open: boolean): string {
   return `<details id="${esc(g.slug)}"${open ? " open" : ""}>
 <summary><h3>${esc(g.name)} — ${g.stations.length} ${stationWord} · ${esc(avg)}</h3></summary>
 ${table(
-    `<th>Station</th><th>Provider</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>`,
+    `<th>Station</th><th>Provider</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     rows,
   )}
 </details>`;
@@ -91,10 +100,17 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
   </p>
 </header>
 
+<p class="muted small">
+  <strong>Yrs lost</strong> column = years of life expectancy lost if this station's PM2.5 level persisted as the annual average, per the
+  <a href="https://aqli.epic.uchicago.edu/about/the-index/">Air Quality Life Index</a> (Greenstone et al., U Chicago EPIC; Ebenstein et al. 2017 PNAS)
+  applied against the WHO 5 µg/m³ guideline.
+  <a href="/docs/data-sources#health-impact">Methodology &amp; caveats →</a>
+</p>
+
 <section id="worst">
   <h2>Worst 50</h2>
   ${table(
-    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>`,
+    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     worst.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
   )}
 </section>
@@ -102,7 +118,7 @@ export function renderHome(snap: Snapshot, siteUrl: string): string {
 <section id="best">
   <h2>Best 50</h2>
   ${table(
-    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th>`,
+    `<th class="num">#</th><th>Station</th><th>City</th><th class="num">PM2.5</th><th class="num">AQI</th><th>Band</th><th class="num" title="Years of life expectancy lost if this PM2.5 level persisted annually (AQLI vs WHO 5 µg/m³ guideline)">Yrs lost</th>`,
     best.map((s, i) => rowNumbered(i + 1, s)).join("\n"),
   )}
 </section>
