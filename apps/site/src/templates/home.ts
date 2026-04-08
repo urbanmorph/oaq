@@ -63,10 +63,10 @@ ${yllCell(s)}
 }
 
 function table(header: string, body: string): string {
-  return `<table>
+  return `<div class="table-wrap"><table>
 <thead><tr>${header}</tr></thead>
 <tbody>${body}</tbody>
-</table>`;
+</table></div>`;
 }
 
 function cityDetails(g: CityGroup, open: boolean): string {

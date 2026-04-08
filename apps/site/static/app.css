@@ -118,8 +118,18 @@ main > section > h2 { margin-block: 0 1rem; }
 .band.vpoor { background: var(--band-vpoor); }
 .band.severe { background: var(--band-severe); }
 
+/* Horizontal scroll wrapper so wide leaderboard tables never push layout
+   off-screen on narrow viewports. */
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-wrap > table { min-width: max-content; }
+
 table { width: 100%; }
-table td, table th { padding: 0.35rem 0.5rem; }
+table td, table th { padding: 0.35rem 0.5rem; white-space: nowrap; }
 
 details { margin-block: 0.75rem; }
 details > summary { cursor: pointer; }
@@ -146,6 +156,19 @@ input[type="search"] { width: 100%; max-width: 32rem; }
 details[hidden] { display: none !important; }
 
 @media (max-width: 640px) {
+  main { padding: 0 0.75rem 2rem; }
+  nav.site-nav[data-topnav] {
+    padding: 1.25rem 0.75rem 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+  nav.site-nav .site-links { gap: 0.9rem; font-size: 0.9rem; }
+  .hero h1 { font-size: 1.75rem; line-height: 1.15; }
   .aqi-big { font-size: 3.5rem; }
-  table td, table th { padding: 0.3rem 0.35rem; font-size: 0.9rem; }
+  .aqi-hero { flex-wrap: wrap; gap: 1rem; }
+  table td, table th { padding: 0.3rem 0.4rem; font-size: 0.85rem; }
+  details > summary > h3 { font-size: 0.95rem; }
+  /* Station page pollutant table stays full-width, no scroll. */
+  .impact-grid dd strong { font-size: 1.3rem; }
+  footer.site-footer { font-size: 0.85rem; padding: 1.25rem 0.75rem 0; }
 }
